@@ -240,10 +240,13 @@
             // 
             // txtStatusConsole
             // 
+            this.txtStatusConsole.BackColor = System.Drawing.Color.White;
+            this.txtStatusConsole.DetectUrls = false;
             this.txtStatusConsole.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtStatusConsole.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtStatusConsole.Location = new System.Drawing.Point(0, 85);
             this.txtStatusConsole.Name = "txtStatusConsole";
+            this.txtStatusConsole.ReadOnly = true;
             this.txtStatusConsole.Size = new System.Drawing.Size(967, 516);
             this.txtStatusConsole.TabIndex = 5;
             this.txtStatusConsole.Text = "";

@@ -40,6 +40,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,6 +50,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -63,7 +65,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>jewel-icon.ico</ApplicationIcon>
@@ -367,12 +369,12 @@
     <Compile Include="Helpers\DataFileManager.cs" />
     <Compile Include="Helpers\Encryption.cs" />
     <Compile Include="Managers\AbiManager.cs" />
-    <Compile Include="Managers\Contracts\Base\BaseContract.cs" />
-    <Compile Include="Managers\Contracts\HeroContractHandler.cs" />
-    <Compile Include="Managers\Contracts\JewelContractHandler.cs" />
-    <Compile Include="Managers\Contracts\OneContractHandler.cs" />
-    <Compile Include="Managers\Contracts\ProfileContractHandler.cs" />
-    <Compile Include="Managers\Contracts\QuestContractHandler.cs" />
+    <Compile Include="ContractHandlers\Base\BaseContract.cs" />
+    <Compile Include="ContractHandlers\HeroContractHandler.cs" />
+    <Compile Include="ContractHandlers\JewelContractHandler.cs" />
+    <Compile Include="ContractHandlers\OneContractHandler.cs" />
+    <Compile Include="ContractHandlers\ProfileContractHandler.cs" />
+    <Compile Include="ContractHandlers\QuestContractHandler.cs" />
     <Compile Include="Managers\JewelManager.cs" />
     <Compile Include="Objects\Events\JewelInformationEvent.cs" />
     <Compile Include="Objects\Events\ManageWalletGridEvent.cs" />

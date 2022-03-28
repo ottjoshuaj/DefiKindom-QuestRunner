@@ -161,7 +161,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                     QuestCurrentMode = QuestActivityMode.WantsToCancelQuest;
 
                                     //Lets tell jewel manager we need the jewel
-                                    eventHub.Publish(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel));
+                                    await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel));
 
                                     //Recall timer to force jewel request
                                     TimerCheckInstanceStatusOnElapsed(null, null);
@@ -187,7 +187,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                         }
 
                         //Tell system your questing
-                        eventHub.Publish(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.WaitingOnStamina));
+                        await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.WaitingOnStamina));
                         break;
 
                     case QuestActivityMode.WantsToCancelQuest:
@@ -202,11 +202,11 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
 
                                 //Tell system your not questing now
-                                eventHub.Publish(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled));
+                                await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled));
                             }
 
                             //Lets tell jewel manager we're done
-                            eventHub.Publish(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                            await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
                         }
                         break;
 
@@ -222,11 +222,11 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 QuestCurrentMode = QuestActivityMode.Questing;
 
                                 //Tell system your questing
-                                eventHub.Publish(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
+                                await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
                             }
 
                             //Lets tell jewel manager we're done
-                            eventHub.Publish(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                            await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
                         }
                         break;
                 }

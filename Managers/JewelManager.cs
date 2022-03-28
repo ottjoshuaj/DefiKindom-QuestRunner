@@ -95,8 +95,13 @@ namespace DefiKindom_QuestRunner.Managers
                     lock (_walletsNeedingJewel)
                     {
                         //Was wallet instance already in list? No sense in double adding!
-                        if (_walletsNeedingJewel.All(x => x.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
+                        if (_walletsNeedingJewel.All(x =>
+                                x.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
+                        {
                             _walletsNeedingJewel.Add(instance.Wallet);
+
+                            eventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Wants the jewel...(Queued)." });
+                        }
                     }
                     break;
 
@@ -107,7 +112,11 @@ namespace DefiKindom_QuestRunner.Managers
                     {
                         //WAllet is DONE with the jewel, make sure wallet is in the queue list and remove it
                         if (_walletsNeedingJewel.Any(x => x.Address != instance.Wallet.Address))
+                        {
                             _walletsNeedingJewel.Remove(instance.Wallet);
+
+                            eventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Is Finished With Jewel...(Removed from Queue)." });
+                        }
                     }
 
                     _jewelIsBusy = false;

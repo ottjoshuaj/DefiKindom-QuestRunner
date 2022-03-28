@@ -119,10 +119,8 @@ namespace DefiKindom_QuestRunner
 
         private void OnResize(object sender, EventArgs e)
         {
-            if (WindowState == FormWindowState.Minimized)
-            {
+            if (WindowState == FormWindowState.Minimized && Settings.Default.MinimizeToTray)
                 Hide();
-            }
         }
 
         #endregion
@@ -140,7 +138,7 @@ namespace DefiKindom_QuestRunner
             mnuImport.Text = @"Import";
             mnuImport.Items.AddRange(mnuImportExistingWallet, mnuImportWalletDataFile);
 
-            mnuWallets.Items.AddRange(mnuImport, 
+            mnuWallets.Items.AddRange(mnuImport,
                 mnuExportWalletDataFile, radMenuSeparatorItem2, mnuManageAllWallets, radMenuSeparatorItem3, mnuRunWalletInit);
 
 
@@ -328,11 +326,15 @@ namespace DefiKindom_QuestRunner
             {
                 txtStatusConsole.SuspendLayout();
 
+                if (txtStatusConsole.Lines.Length > 5000)
+                    txtStatusConsole.Text = "";
+
                 txtStatusConsole.SelectionColor = Color.Blue;
                 txtStatusConsole.AppendText($"[{DateTime.Now.ToShortDateString()}:{DateTime.Now.ToShortTimeString()}]");
                 txtStatusConsole.ScrollToCaret();
                 txtStatusConsole.SelectionColor = isError ? Color.Red : Color.Black;
                 txtStatusConsole.AppendText($" => {text}{Environment.NewLine}");
+
                 txtStatusConsole.ScrollToCaret();
 
                 txtStatusConsole.ResumeLayout();
@@ -357,7 +359,8 @@ namespace DefiKindom_QuestRunner
                 toolStripWalletsQuesting.Text = text;
         }
 
-        void ShowDesktopAlert(NotificationEvent noticeEvent) {
+        void ShowDesktopAlert(NotificationEvent noticeEvent)
+        {
             if (InvokeRequired)
                 Invoke(new ShowDesktopAlertDelegate(ShowDesktopAlert), noticeEvent);
             else
@@ -437,14 +440,6 @@ namespace DefiKindom_QuestRunner
 
             eventHub.Subscribe<NotificationEvent>(this, ShowDesktopAlert);
 
-            eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
-            {
-                var walletsOnQuest = QuestEngineManager.GetAllQuestInstances()
-                    .Count(x => x.Engine.QuestCurrentMode == QuestEngine.QuestActivityMode.Questing);
-
-                SetWalletsOnQuestToolStripLabel($"({walletsOnQuest} QuestInstances Running...");
-            });
-
 
             eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
             {
@@ -463,7 +458,7 @@ namespace DefiKindom_QuestRunner
 
             eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
             {
-                if(jewelInfoEvent.JewelInformation != null)
+                if (jewelInfoEvent.JewelInformation != null)
                 {
                     //jewelInfoEvent.JewelInformation
                     AddConsoleMessage($"[Current Jewel Holder:{jewelInfoEvent.JewelInformation.Holder.Address}] => Currently Holds Your Jewels in da sack!");
@@ -521,7 +516,7 @@ namespace DefiKindom_QuestRunner
 
         void HandleJewelProfitUxUpdates(JewelInformation jewelInfo)
         {
-            if(InvokeRequired)
+            if (InvokeRequired)
                 Invoke(new HandleJewelProfitUxUpdatesDelegate(HandleJewelProfitUxUpdates), jewelInfo);
             else
             {
@@ -628,7 +623,7 @@ namespace DefiKindom_QuestRunner
 
                 EnableUxControls(true);
 
-                
+
                 /*
                 if (Settings.Default.AutoStartQuestingOnStartup)
                 {
