@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -69,6 +70,7 @@ namespace DefiKindom_QuestRunner
             //Setup Form Events
             Shown += OnShown;
             Resize += OnResize;
+            Closing += OnClosing;
 
             ThemeResolutionService.ApplicationThemeName = "Material";
 
@@ -121,6 +123,18 @@ namespace DefiKindom_QuestRunner
         {
             if (WindowState == FormWindowState.Minimized && Settings.Default.MinimizeToTray)
                 Hide();
+        }
+
+        private async void OnClosing(object sender, CancelEventArgs e)
+        {
+            mnuStartQuestEngine.Enabled = false;
+            mnuStopQuestEngine.Enabled = false;
+
+            AddConsoleMessage("Stopping All Quest Instances...");
+
+            QuestEngineManager.KillAllInstances();
+
+            AddConsoleMessage($"Quest Instances stopped...");
         }
 
         #endregion
@@ -178,12 +192,20 @@ namespace DefiKindom_QuestRunner
 
         private async void mnuStartQuestEngine_Click(object sender, EventArgs e)
         {
+            if (!WalletManager.GetWallets().Any(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile))
+            {
+                RadMessageBox.Show(this,
+                    "There are not any wallets capable of questing!\r\nMake sure they have ONE, has a hero and is onboarded to DFK.",
+                    "  No Questable Wallets Found");
+                return;
+            }
+
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
 
-            AddConsoleMessage("Re-Indexing Wallets...");
+            AddConsoleMessage("Refreshing all wallets...");
 
-            AddConsoleMessage("Re-Indexing Complete!");
+            await WalletManager.Init();
 
             AddConsoleMessage("Loading Quest Instances for questing wallets...");
 
@@ -194,24 +216,27 @@ namespace DefiKindom_QuestRunner
             mnuStopQuestEngine.Enabled = true;
         }
 
-        private async void mnuStopQuestEngine_Click(object sender, EventArgs e)
+        private void mnuStopQuestEngine_Click(object sender, EventArgs e)
         {
+            if (QuestEngineManager.Count == 0)
+            {
+                //No running quests. No sense in attempting to stop any
+                RadMessageBox.Show(this,
+                    "There are currently running quest instances running.",
+                    "  Warning");
+                return;
+            }
+
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
 
             AddConsoleMessage("Stopping All Quest Instances...");
 
-            await WalletManager.OnBoardQuestInstances();
+            QuestEngineManager.KillAllInstances();
 
             AddConsoleMessage($"Quest Instances stopped...");
 
             mnuStartQuestEngine.Enabled = true;
-        }
-
-        private void mnuStartQuestEngineOnStartup_Click(object sender, EventArgs e)
-        {
-            //Settings.Default.AutoStartQuestingOnStartup = mnuAutoStartQuestingOnStartup.IsChecked;
-            //Settings.Default.Save();
         }
 
         private void mnuPreferences_Click(object sender, EventArgs e)
@@ -574,17 +599,6 @@ namespace DefiKindom_QuestRunner
                 Settings.Default.FirstInit = false;
                 Settings.Default.LastWalletIndex = DateTime.Now;
                 Settings.Default.Save();
-
-                /*
-                if (Settings.Default.AutoStartQuestingOnStartup)
-                {
-                    AddConsoleMessage("Loading Quest Instances for questing wallets...");
-
-                    var instancesStarted = await WalletManager.OnBoardQuestInstances();
-
-                    AddConsoleMessage($"({instancesStarted}) Quest Instances instantiated...");
-                }
-                */
             }
             else
             {
@@ -622,18 +636,6 @@ namespace DefiKindom_QuestRunner
                 AddConsoleMessage("Jewel monitoring system started");
 
                 EnableUxControls(true);
-
-
-                /*
-                if (Settings.Default.AutoStartQuestingOnStartup)
-                {
-                    AddConsoleMessage("Loading Quest Instances for questing wallets...");
-
-                    var instancesStarted = await WalletManager.OnBoardQuestInstances();
-
-                    AddConsoleMessage($"({instancesStarted}) Quest Instances instantiated...");
-                }
-                */
             }
 
 

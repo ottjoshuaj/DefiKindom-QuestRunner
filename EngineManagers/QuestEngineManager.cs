@@ -115,12 +115,5 @@ namespace DefiKindom_QuestRunner.EngineManagers
 
         #endregion
     }
-
-
-    class QuestEngineItem
-    {
-        public QuestEngine Engine { get; set; }
-        public Thread ExecutingThread { get; set; }
-    }
 }
 
