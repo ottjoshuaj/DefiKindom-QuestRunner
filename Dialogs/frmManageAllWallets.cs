@@ -38,7 +38,6 @@ namespace DefiKindom_QuestRunner.Dialogs
         {
             InitializeComponent();
 
-            gridWallets.CurrentRowChanged += GridWallets_CurrentRowChanged;
             gridWallets.UserDeletedRow += GridWalletsOnUserDeletedRow;
             gridWallets.UserDeletingRow += GridWalletsOnUserDeletingRow;
             gridWallets.SelectionChanged += GridWalletsOnSelectionChanged;
@@ -117,11 +116,6 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         #region Grid Events
 
-        private void GridWallets_CurrentRowChanged(object sender, CurrentRowChangedEventArgs e)
-        {
-            LoadSelectedWalletToUx(e.CurrentRow.DataBoundItem as DfkWallet);
-
-        }
 
         private void GridWalletsOnUserDeletedRow(object sender, GridViewRowEventArgs e)
         {
@@ -160,8 +154,6 @@ namespace DefiKindom_QuestRunner.Dialogs
             var selectedRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selectedRow != null)
             {
-                LoadSelectedWalletToUx(selectedRow.DataBoundItem as DfkWallet);
-
                 //Wallet Instance
                 var walletItem = selectedRow.DataBoundItem as DfkWallet;
                 if (walletItem != null)
@@ -553,38 +545,6 @@ namespace DefiKindom_QuestRunner.Dialogs
                     lblWalletsThatCanQuest.Text = $@"({wallets.Count(x=>x.ReadyToWork)}) Wallets Are Quest Ready";
                 }
             }
-        }
-
-        void LoadSelectedWalletToUx(DfkWallet rowDataItem)
-        {
-            if (rowDataItem == null) return;
-
-
-            /*
-                lblIsQuesting.Text = "Yes";
-                lblQuestStartedAt.Text = rowDataItem.AssignedHeroQuestStatus.QuestStartedAt.ToString();
-                lblQuestCompletesAt.Text = rowDataItem.AssignedHeroQuestStatus.QuestCompletesAt.ToString();
-                lblQuestAddress.Text = rowDataItem.AssignedHeroQuestStatus.ContractAddress;
-                lblQuestStartBlock.Text = rowDataItem.AssignedHeroQuestStatus.StartBlock.ToString();
-                lblQuestHeroIds.Text = string.Join(",", rowDataItem.AssignedHeroQuestStatus.HeroesOnQuest.ToArray());
-                lblQuestStatus.Text = rowDataItem.AssignedHeroQuestStatus.Status.ToString();
-                lblQuestAttempts.Text = rowDataItem.AssignedHeroQuestStatus.Attempts.ToString();
-
-                groupQuestOptions.Enabled = true;
-
-                if (rowDataItem.AssignedHeroQuestStatus.IsQuesting)
-                {
-                    ddQuestTypes.Enabled = false;
-                    btnStartQuest.Enabled = false;
-                    btnStopQuest.Enabled = true;
-                }
-                else
-                {
-                    ddQuestTypes.Enabled = true;
-                    btnStartQuest.Enabled = true;
-                    btnStopQuest.Enabled = false;
-                }
-             */
         }
 
         #endregion
