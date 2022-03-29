@@ -28,6 +28,8 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         private delegate void LoadDataToGridDelegate();
 
+        private delegate void UpdateStatusLabelDelegate(string text);
+
         #endregion
 
         #region Constructor(s)
@@ -314,29 +316,37 @@ namespace DefiKindom_QuestRunner.Dialogs
                 var wallet = selRow.DataBoundItem as DfkWallet;
                 if (wallet != null)
                 {
-                    if (wallet.AssignedHero > 0)
+                    if (wallet.AvailableHeroes.Count > 0)
                     {
                         //We're sending the current wallet hero BACK to the source wallet
                         var sourceWallet = WalletManager.GetWallets().FirstOrDefault(x => x.IsPrimarySourceWallet);
                         if (sourceWallet != null)
                         {
-                            var heroSentToWalletResult =
-                                await new HeroContractHandler().SendHeroToWallet(wallet, sourceWallet.WalletAccount,
-                                    wallet.AssignedHero);
-                            if (heroSentToWalletResult)
+                            UpdateStatusLabelMessage("Moving Heroes Back To Source Wallet....");
+
+                            foreach (var heroId in wallet.AvailableHeroes)
                             {
-                                await eventHub.PublishAsync(new MessageEvent()
+                                var heroSentToWalletResult =
+                                    await new HeroContractHandler().SendHeroToWallet(wallet, sourceWallet.WalletAccount,
+                                        heroId);
+                                if (heroSentToWalletResult)
                                 {
-                                    Content =
-                                        $"[Wallet:{sourceWallet.Address}] => Received => [Hero:{wallet.AssignedHero}] (Recalled Action)"
-                                });
+                                    await eventHub.PublishAsync(new MessageEvent()
+                                    {
+                                        Content =
+                                            $"[Wallet:{sourceWallet.Address}] => Received => [Hero:{heroId}] (Recalled Action)"
+                                    });
+                                }
                             }
 
-                            WalletManager.ReloadWalletHeroData(sourceWallet.Address);
+                            await WalletManager.ReloadWalletHeroData(sourceWallet.Address);
+                            await WalletManager.ReloadWalletHeroData(wallet.Address);
 
                             WalletManager.SaveWallets();
 
                             LoadDataToGrid();
+
+                            UpdateStatusLabelMessage("Idle");
 
                             ShowRadAlertMessageBox($"{wallet.Name}'s Hero has been recalled back to source wallet!",
                                 "Hero Recalled");
@@ -588,6 +598,20 @@ namespace DefiKindom_QuestRunner.Dialogs
             else
             {
                 RadMessageBox.Show(this, text, title);
+            }
+        }
+
+        #endregion
+
+        #region Status Box Handler
+
+        void UpdateStatusLabelMessage(string text)
+        {
+            if (InvokeRequired)
+                Invoke(new UpdateStatusLabelDelegate(UpdateStatusLabelMessage), text);
+            else
+            {
+                lblWalletStatusInfo.Text = text;
             }
         }
 

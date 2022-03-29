@@ -165,10 +165,19 @@ namespace DefiKindom_QuestRunner.Managers
                 }
 
                 //Is there an assigned hero? If not assign first one in the list!
-                if (wallet.AssignedHero == 0 && wallet.AvailableHeroes.Count > 0)
-                    wallet.AssignedHero = wallet.AvailableHeroes.FirstOrDefault();
-                else
+                if (wallet.AvailableHeroes == null)
+                {
                     wallet.AssignedHero = 0;
+                    wallet.AssignedHeroStamina = 0;
+                }
+                else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                {
+                    wallet.AssignedHero = 0;
+                    wallet.AssignedHeroStamina = 0;
+                }
+                else
+                    wallet.AssignedHero = walletHeroes[0];
+
 
                 //Get current stamina info for the hero
                 wallet.AssignedHeroStamina =
@@ -177,9 +186,13 @@ namespace DefiKindom_QuestRunner.Managers
             }
         }
 
-        public static async void ReloadWalletHeroData(string address)
+        public static async Task<bool> ReloadWalletHeroData(string address)
         {
-            var wallet = GetWallets().FirstOrDefault(x => x.Address.Trim().ToUpper() == address.Trim().ToUpper());
+            DfkWallet wallet;
+
+            lock(Wallets)
+                wallet = Wallets.FirstOrDefault(x => x.Address.Trim().ToUpper() == address.Trim().ToUpper());
+
             if (wallet != null)
             {
                 var walletHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
@@ -203,17 +216,27 @@ namespace DefiKindom_QuestRunner.Managers
 
                 //Always make sure the FIRST index of heroes is who is assigned to the wallet
                 if (wallet.AvailableHeroes == null)
+                {
                     wallet.AssignedHero = 0;
-                else if(wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                    wallet.AssignedHeroStamina = 0;
+                }
+                else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                {
                     wallet.AssignedHero = 0;
-                else 
+                    wallet.AssignedHeroStamina = 0;
+                }
+                else
                     wallet.AssignedHero = walletHeroes[0];
 
                 //Get current stamina info for the hero
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount,
                         wallet.AssignedHero);
+
+                return true;
             }
+
+            return false;
         }
 
         public static async Task<DfkWallet> InitWallet(DfkWallet wallet, bool isQuickInit = false)
@@ -382,7 +405,7 @@ namespace DefiKindom_QuestRunner.Managers
         public static List<DfkWallet> GetWallets()
         {
             lock(Wallets)
-                return Wallets;
+                return Wallets.ToList();
         }
 
         public static DfkWallet GetWallet(string address)
@@ -486,7 +509,7 @@ namespace DefiKindom_QuestRunner.Managers
 
             //Get wallets by ref here
             lock (Wallets)
-                tempWallets = Wallets;
+                tempWallets = Wallets.ToList();
 
             //Loop list of wallets till we find the jewel owner
             foreach (var wallet in tempWallets)

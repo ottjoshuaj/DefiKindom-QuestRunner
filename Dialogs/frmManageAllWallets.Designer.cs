@@ -36,11 +36,12 @@
             Telerik.WinControls.UI.GridViewCheckBoxColumn gridViewCheckBoxColumn3 = new Telerik.WinControls.UI.GridViewCheckBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn3 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn4 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
-            Telerik.WinControls.UI.GridViewCheckBoxColumn gridViewCheckBoxColumn4 = new Telerik.WinControls.UI.GridViewCheckBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn5 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
+            Telerik.WinControls.UI.GridViewCheckBoxColumn gridViewCheckBoxColumn4 = new Telerik.WinControls.UI.GridViewCheckBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn6 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn7 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn8 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
+            Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn9 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.TableViewDefinition tableViewDefinition1 = new Telerik.WinControls.UI.TableViewDefinition();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmManageAllWallets));
             this.materialBlueGreyTheme1 = new Telerik.WinControls.Themes.MaterialBlueGreyTheme();
@@ -50,6 +51,10 @@
             this.gridWallets = new Telerik.WinControls.UI.RadGridView();
             this.radStatusStrip1 = new Telerik.WinControls.UI.RadStatusStrip();
             this.lblWalletStatusInfo = new Telerik.WinControls.UI.RadLabelElement();
+            this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
+            this.lblWalletsThatCanQuest = new Telerik.WinControls.UI.RadLabelElement();
+            this.commandBarSeparator2 = new Telerik.WinControls.UI.CommandBarSeparator();
+            this.lblAppStatus = new Telerik.WinControls.UI.RadLabelElement();
             this.radMenuItem1 = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSendOneAndOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
@@ -74,8 +79,6 @@
             this.radMenuSeparatorItem8 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuGridActionSendJewelTo = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
-            this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
-            this.lblWalletsThatCanQuest = new Telerik.WinControls.UI.RadLabelElement();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
@@ -134,22 +137,27 @@
             gridViewCheckBoxColumn3.Name = "colHasDKProfile";
             gridViewCheckBoxColumn3.ReadOnly = true;
             gridViewCheckBoxColumn3.Width = 100;
-            gridViewTextBoxColumn3.FieldName = "AssignedHero";
-            gridViewTextBoxColumn3.HeaderText = "Assigned Hero";
-            gridViewTextBoxColumn3.MaxWidth = 150;
+            gridViewTextBoxColumn3.FieldName = "TotalAccountHeroes";
+            gridViewTextBoxColumn3.HeaderText = "Total Heroes";
             gridViewTextBoxColumn3.MinWidth = 150;
-            gridViewTextBoxColumn3.Name = "colAssignedHero";
-            gridViewTextBoxColumn3.ReadOnly = true;
-            gridViewTextBoxColumn3.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
+            gridViewTextBoxColumn3.Name = "colTotalAccountHeroes";
             gridViewTextBoxColumn3.Width = 150;
-            gridViewTextBoxColumn4.FieldName = "AssignedHeroStamina";
-            gridViewTextBoxColumn4.HeaderText = "Hero Stamina";
+            gridViewTextBoxColumn4.FieldName = "AssignedHero";
+            gridViewTextBoxColumn4.HeaderText = "Assigned Hero";
             gridViewTextBoxColumn4.MaxWidth = 150;
             gridViewTextBoxColumn4.MinWidth = 150;
-            gridViewTextBoxColumn4.Name = "colHeroStamina";
+            gridViewTextBoxColumn4.Name = "colAssignedHero";
             gridViewTextBoxColumn4.ReadOnly = true;
             gridViewTextBoxColumn4.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
             gridViewTextBoxColumn4.Width = 150;
+            gridViewTextBoxColumn5.FieldName = "AssignedHeroStamina";
+            gridViewTextBoxColumn5.HeaderText = "Hero Stamina";
+            gridViewTextBoxColumn5.MaxWidth = 150;
+            gridViewTextBoxColumn5.MinWidth = 150;
+            gridViewTextBoxColumn5.Name = "colHeroStamina";
+            gridViewTextBoxColumn5.ReadOnly = true;
+            gridViewTextBoxColumn5.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
+            gridViewTextBoxColumn5.Width = 150;
             gridViewCheckBoxColumn4.FieldName = "AssignedHeroQuestStatus.IsQuesting";
             gridViewCheckBoxColumn4.HeaderText = "Hero Is Questing";
             gridViewCheckBoxColumn4.MaxWidth = 150;
@@ -157,35 +165,35 @@
             gridViewCheckBoxColumn4.Name = "colHeroIsQuesting";
             gridViewCheckBoxColumn4.ReadOnly = true;
             gridViewCheckBoxColumn4.Width = 150;
-            gridViewTextBoxColumn5.FieldName = "CurrentBalance";
-            gridViewTextBoxColumn5.HeaderText = "ONE Balance";
-            gridViewTextBoxColumn5.MaxWidth = 200;
-            gridViewTextBoxColumn5.MinWidth = 200;
-            gridViewTextBoxColumn5.Name = "colONEBalance";
-            gridViewTextBoxColumn5.ReadOnly = true;
-            gridViewTextBoxColumn5.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
-            gridViewTextBoxColumn5.Width = 200;
-            gridViewTextBoxColumn6.FieldName = "JewelBalance";
-            gridViewTextBoxColumn6.HeaderText = "JEWEL Balance";
+            gridViewTextBoxColumn6.FieldName = "CurrentBalance";
+            gridViewTextBoxColumn6.HeaderText = "ONE Balance";
             gridViewTextBoxColumn6.MaxWidth = 200;
             gridViewTextBoxColumn6.MinWidth = 200;
-            gridViewTextBoxColumn6.Name = "colJewelBalance";
+            gridViewTextBoxColumn6.Name = "colONEBalance";
             gridViewTextBoxColumn6.ReadOnly = true;
+            gridViewTextBoxColumn6.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
             gridViewTextBoxColumn6.Width = 200;
-            gridViewTextBoxColumn7.FieldName = "QuestStartedAt";
-            gridViewTextBoxColumn7.HeaderText = "Quest Started";
+            gridViewTextBoxColumn7.FieldName = "JewelBalance";
+            gridViewTextBoxColumn7.HeaderText = "JEWEL Balance";
+            gridViewTextBoxColumn7.MaxWidth = 200;
             gridViewTextBoxColumn7.MinWidth = 200;
-            gridViewTextBoxColumn7.Name = "colQuestStartedAt";
+            gridViewTextBoxColumn7.Name = "colJewelBalance";
             gridViewTextBoxColumn7.ReadOnly = true;
-            gridViewTextBoxColumn7.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
             gridViewTextBoxColumn7.Width = 200;
-            gridViewTextBoxColumn8.FieldName = "QuestCompletesAt";
-            gridViewTextBoxColumn8.HeaderText = "Quest Completes At";
+            gridViewTextBoxColumn8.FieldName = "QuestStartedAt";
+            gridViewTextBoxColumn8.HeaderText = "Quest Started";
             gridViewTextBoxColumn8.MinWidth = 200;
-            gridViewTextBoxColumn8.Name = "colQuestCompletesAt";
+            gridViewTextBoxColumn8.Name = "colQuestStartedAt";
             gridViewTextBoxColumn8.ReadOnly = true;
             gridViewTextBoxColumn8.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
             gridViewTextBoxColumn8.Width = 200;
+            gridViewTextBoxColumn9.FieldName = "QuestCompletesAt";
+            gridViewTextBoxColumn9.HeaderText = "Quest Completes At";
+            gridViewTextBoxColumn9.MinWidth = 200;
+            gridViewTextBoxColumn9.Name = "colQuestCompletesAt";
+            gridViewTextBoxColumn9.ReadOnly = true;
+            gridViewTextBoxColumn9.TextAlignment = System.Drawing.ContentAlignment.MiddleCenter;
+            gridViewTextBoxColumn9.Width = 200;
             this.gridWallets.MasterTemplate.Columns.AddRange(new Telerik.WinControls.UI.GridViewDataColumn[] {
             gridViewCheckBoxColumn1,
             gridViewCheckBoxColumn2,
@@ -194,12 +202,12 @@
             gridViewCheckBoxColumn3,
             gridViewTextBoxColumn3,
             gridViewTextBoxColumn4,
-            gridViewCheckBoxColumn4,
             gridViewTextBoxColumn5,
+            gridViewCheckBoxColumn4,
             gridViewTextBoxColumn6,
             gridViewTextBoxColumn7,
-            gridViewTextBoxColumn8});
-            this.gridWallets.MasterTemplate.EnableSorting = false;
+            gridViewTextBoxColumn8,
+            gridViewTextBoxColumn9});
             this.gridWallets.MasterTemplate.HorizontalScrollState = Telerik.WinControls.UI.ScrollState.AlwaysShow;
             this.gridWallets.MasterTemplate.MultiSelect = true;
             this.gridWallets.MasterTemplate.ViewDefinition = tableViewDefinition1;
@@ -216,7 +224,9 @@
             this.radStatusStrip1.Items.AddRange(new Telerik.WinControls.RadItem[] {
             this.lblWalletStatusInfo,
             this.commandBarSeparator1,
-            this.lblWalletsThatCanQuest});
+            this.lblWalletsThatCanQuest,
+            this.commandBarSeparator2,
+            this.lblAppStatus});
             this.radStatusStrip1.Location = new System.Drawing.Point(0, 562);
             this.radStatusStrip1.Name = "radStatusStrip1";
             this.radStatusStrip1.Size = new System.Drawing.Size(894, 24);
@@ -228,6 +238,33 @@
             this.radStatusStrip1.SetSpring(this.lblWalletStatusInfo, false);
             this.lblWalletStatusInfo.Text = "Managing (0) Wallets";
             this.lblWalletStatusInfo.TextWrap = true;
+            // 
+            // commandBarSeparator1
+            // 
+            this.commandBarSeparator1.Name = "commandBarSeparator1";
+            this.radStatusStrip1.SetSpring(this.commandBarSeparator1, false);
+            this.commandBarSeparator1.VisibleInOverflowMenu = false;
+            // 
+            // lblWalletsThatCanQuest
+            // 
+            this.lblWalletsThatCanQuest.Name = "lblWalletsThatCanQuest";
+            this.radStatusStrip1.SetSpring(this.lblWalletsThatCanQuest, false);
+            this.lblWalletsThatCanQuest.Text = "(0) Wallets Are Quest Ready";
+            this.lblWalletsThatCanQuest.TextWrap = true;
+            // 
+            // commandBarSeparator2
+            // 
+            this.commandBarSeparator2.Name = "commandBarSeparator2";
+            this.radStatusStrip1.SetSpring(this.commandBarSeparator2, false);
+            this.commandBarSeparator2.VisibleInOverflowMenu = false;
+            // 
+            // lblAppStatus
+            // 
+            this.lblAppStatus.Name = "lblAppStatus";
+            this.radStatusStrip1.SetSpring(this.lblAppStatus, true);
+            this.lblAppStatus.Text = "Current Status: Idle";
+            this.lblAppStatus.TextAlignment = System.Drawing.ContentAlignment.MiddleRight;
+            this.lblAppStatus.TextWrap = true;
             // 
             // radMenuItem1
             // 
@@ -342,7 +379,7 @@
             // mnuGridActionRecallHeroToSource
             // 
             this.mnuGridActionRecallHeroToSource.Name = "mnuGridActionRecallHeroToSource";
-            this.mnuGridActionRecallHeroToSource.Text = "Re-call hero to source/primary wallet";
+            this.mnuGridActionRecallHeroToSource.Text = "Re-call heroes to source/primary wallet";
             // 
             // radMenuSeparatorItem7
             // 
@@ -391,20 +428,6 @@
             this.mnuMainMenu.Size = new System.Drawing.Size(894, 37);
             this.mnuMainMenu.TabIndex = 0;
             this.mnuMainMenu.ThemeName = "Material";
-            // 
-            // commandBarSeparator1
-            // 
-            this.commandBarSeparator1.Name = "commandBarSeparator1";
-            this.radStatusStrip1.SetSpring(this.commandBarSeparator1, false);
-            this.commandBarSeparator1.Text = "";
-            this.commandBarSeparator1.VisibleInOverflowMenu = false;
-            // 
-            // lblWalletsThatCanQuest
-            // 
-            this.lblWalletsThatCanQuest.Name = "lblWalletsThatCanQuest";
-            this.radStatusStrip1.SetSpring(this.lblWalletsThatCanQuest, false);
-            this.lblWalletsThatCanQuest.Text = "(0) Wallets Are Quest Ready";
-            this.lblWalletsThatCanQuest.TextWrap = true;
             // 
             // frmManageAllWallets
             // 
@@ -469,5 +492,7 @@
         private Telerik.WinControls.UI.RadMenu mnuMainMenu;
         private Telerik.WinControls.UI.CommandBarSeparator commandBarSeparator1;
         private Telerik.WinControls.UI.RadLabelElement lblWalletsThatCanQuest;
+        private Telerik.WinControls.UI.CommandBarSeparator commandBarSeparator2;
+        private Telerik.WinControls.UI.RadLabelElement lblAppStatus;
     }
 }

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using PubSub;
 using Telerik.WinControls;
@@ -23,6 +24,7 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         #region Internals
 
+        private bool isBusy;
         Hub eventHub = Hub.Default;
         DfkWallet _wallet = null;
 
@@ -33,6 +35,8 @@ namespace DefiKindom_QuestRunner.Dialogs
         public frmSendONEToWallets()
         {
             InitializeComponent();
+
+            FormClosing += OnFormClosing;
         }
 
         public frmSendONEToWallets(DfkWallet wallet) : this()
@@ -53,6 +57,11 @@ namespace DefiKindom_QuestRunner.Dialogs
             }
         }
 
+        private void OnFormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = isBusy;
+        }
+
         #endregion
 
         #region Button Events
@@ -67,14 +76,14 @@ namespace DefiKindom_QuestRunner.Dialogs
 
             btnSendOne.Enabled = false;
 
-            Closing += delegate (object o, CancelEventArgs args) { args.Cancel = true; };
+            isBusy = true;
 
             //Update TExt
             btnSendOne.Text = @"Sending ONE...Please wait...";
 
             await Task.Run(SendOneToWallets);
 
-            Closing -= null;
+            isBusy = false;
 
             btnSendOne.Text = @"Send ONE";
             btnSendOne.Enabled = true;

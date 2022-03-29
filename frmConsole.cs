@@ -330,6 +330,8 @@ namespace DefiKindom_QuestRunner
             //Init app wallet manager
             await WalletManager.Init();
 
+            AddConsoleMessage("Wallet database indexed...");
+
             mnuManageAllWallets.Enabled = true;
         }
 

@@ -17,11 +17,14 @@ namespace DefiKindom_QuestRunner.Dialogs
 {
     public partial class frmCreateNewWallets : RadForm
     {
+        private bool isBusy;
         static Hub eventHub = Hub.Default;
 
         public frmCreateNewWallets()
         {
             InitializeComponent();
+
+            FormClosing += OnFormClosing;
         }
 
         private void frmCreateNewWallets_Load(object sender, EventArgs e)
@@ -29,9 +32,16 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         }
 
+        private void OnFormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = isBusy;
+        }
+
         private async void btnGenerateWallets_Click(object sender, EventArgs e)
         {
-            Enabled = false;
+            isBusy = true;
+
+            btnGenerateWallets.Enabled = false;
 
             try
             {
@@ -69,7 +79,9 @@ namespace DefiKindom_QuestRunner.Dialogs
                 await eventHub.PublishAsync(new NotificationEvent { IsError = true, Content = ex.Message });
             }
 
-            Enabled = true;
+            isBusy = false;
+
+            btnGenerateWallets.Enabled = true;
         }
 
         #region Utility Methods

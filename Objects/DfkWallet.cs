@@ -137,5 +137,14 @@ namespace DefiKindom_QuestRunner.Objects
                 return DfkProfile != null;
             }
         }
+
+        [JsonIgnore]
+        public int TotalAccountHeroes
+        {
+            get
+            {
+                return AvailableHeroes.Count;
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using PubSub;
 using Telerik.WinControls.UI;
@@ -16,6 +17,7 @@ namespace DefiKindom_QuestRunner.Dialogs
     {
         #region Internals
 
+        private bool isBusy;
         static Hub eventHub = Hub.Default;
 
         #endregion
@@ -31,6 +33,8 @@ namespace DefiKindom_QuestRunner.Dialogs
         public frmSendHeroesToWallets()
         {
             InitializeComponent();
+
+            FormClosing += OnFormClosing;
         }
 
         #endregion
@@ -43,6 +47,12 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         }
 
+
+        private void OnFormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = isBusy;
+        }
+
         #endregion
 
         #region Button Events
@@ -52,11 +62,11 @@ namespace DefiKindom_QuestRunner.Dialogs
             btnSendHeroesToWallets.Enabled = false;
             btnSendHeroesToWallets.Text = @"Sending Heroes...";
 
-            Closing += delegate(object o, CancelEventArgs args) { args.Cancel = true; };
+            isBusy = true;
 
             await Task.Run(SendHeroesToWallets);
 
-            Closing -= null;
+            isBusy = false;
 
             btnSendHeroesToWallets.Text = @"Send Heroes";
             btnSendHeroesToWallets.Enabled = true;
@@ -78,26 +88,34 @@ namespace DefiKindom_QuestRunner.Dialogs
                 {
                     //remove the source heroid thats assigned from the list to send
                     sourceHeroes.Remove(sourceWallet.AssignedHero);
-                }
 
-                foreach (var heroToSend in sourceHeroes)
-                {
-                    //do NOT send the source wallet "primary" hero
-                    if (heroToSend == sourceWallet.AssignedHero) continue;
-
-                    var nextWalletWithOutHero = WalletManager.GetWallets().FirstOrDefault(x => x.AssignedHero == 0 && x.HasDkProfile);
-
-                    if (nextWalletWithOutHero != null)
+                    var walletsNeedingHeroes =
+                        WalletManager.GetWallets().Where(x => x.AssignedHero == 0 && x.HasDkProfile);
+                    foreach (var walletsNeedingHero in walletsNeedingHeroes)
                     {
+                        var heroToSend = sourceHeroes.FirstOrDefault();
+                        if (heroToSend == 0)
+                        {
+                            break;
+                        }
+
+                        //Send hero to current wallet that needs a hero
                         var heroSentToWalletResult =
-                            await new HeroContractHandler().SendHeroToWallet(sourceWallet, nextWalletWithOutHero.WalletAccount,
+                            await new HeroContractHandler().SendHeroToWallet(sourceWallet,
+                                walletsNeedingHero.WalletAccount,
                                 heroToSend);
                         if (heroSentToWalletResult)
                         {
-                            await eventHub.PublishAsync(new MessageEvent() { Content = $"[Wallet:{nextWalletWithOutHero.Address}] => Received => [Hero:{heroToSend}]" });
+                            await eventHub.PublishAsync(new MessageEvent()
+                            {
+                                Content = $"[Wallet:{walletsNeedingHero.Address}] => Received => [Hero:{heroToSend}]"
+                            });
 
                             herosXfered++;
                         }
+
+                        //Remove the hero from source list so we dont try to send it somewhere else
+                        sourceHeroes.Remove(heroToSend);
                     }
                 }
 
