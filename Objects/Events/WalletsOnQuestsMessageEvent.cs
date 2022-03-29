@@ -9,6 +9,7 @@ namespace DefiKindom_QuestRunner
             InstanceStarting,
             Questing,
             QuestingCanceled,
+            QuestingComplete,
             WaitingOnStamina,
             InstanceStopping
         }

@@ -66,6 +66,24 @@ namespace DefiKindom_QuestRunner.Objects
 
         public DateTime? QuestCompletesAt => AssignedHeroQuestStatus?.QuestCompletesAt;
 
+
+        [JsonIgnore]
+        public bool QuestNeedsCompleted
+        {
+            get
+            {
+                //If no quest status then we know we're not questing!
+                if (AssignedHeroQuestStatus == null) return false;
+
+                //Check to see the time rIGHT NOW is equal to or GREATEr then the time
+                //DFK says the quest completes at
+                if (DateTime.Now >= AssignedHeroQuestStatus.QuestCompletesAt)
+                    return true;
+
+                return false;
+            }
+        }
+
         [JsonIgnore]
         public bool QuestNeedsCanceled
         {

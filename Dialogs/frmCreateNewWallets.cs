@@ -36,17 +36,25 @@ namespace DefiKindom_QuestRunner.Dialogs
             try
             {
                 var walletsGenerated = 0;
-                var newWallets = await WalletManager.CreateWallets(Convert.ToInt32(txtNewWalletAmount.Value), GenerateWord(5));
-                if (newWallets != null)
+
+                for (var i = 0; i < txtNewWalletAmount.Value; i++)
                 {
-                    foreach (var wallet in newWallets)
+                    var walletName = GenerateWord(10);
+                    var walletNameExists = WalletManager.GetWallets().Any(x => x.Name.Trim() == walletName);
+                    while (walletNameExists)
+                    {
+                        walletName = GenerateWord(10);
+                        walletNameExists = WalletManager.GetWallets().Any(x => x.Name.Trim() == walletName);
+                    }
+
+                    var newWallet = await WalletManager.CreateWallet(walletName);
+                    if (newWallet != null)
                     {
                         walletsGenerated++;
 
-                        WalletManager.AddWallet(wallet);
+                        WalletManager.AddWallet(newWallet);
                     }
                 }
-  
 
                 WalletManager.SaveWallets();
 

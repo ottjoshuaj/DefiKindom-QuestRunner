@@ -24,6 +24,8 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         #region Delegates
 
+        private delegate void ShowRadAlertMessageBoxDelegate(string text, string title);
+
         private delegate void LoadDataToGridDelegate();
 
         #endregion
@@ -43,7 +45,7 @@ namespace DefiKindom_QuestRunner.Dialogs
             //Right click context menu event hookup
             mnuGridActionSetAsPrimaryWallet.Click += MnuGridActionSetAsPrimaryWalletClick;
             mnuGridActionSendJewelTo.Click += MnuGridActionSendJewelToOnClick;
-            mnuGridActionSendHeroToWallet.Click += MnuGridActionSendHeroToWalletOnClick; 
+            mnuGridActionSendHeroToWallet.Click += MnuGridActionSendHeroToWalletOnClick;
             mnuGridActionRecallHeroToSource.Click += MnuGridActionRecallHeroToSourceOnClick;
             mnuGridActionRebuildHeroProfile.Click += MnuGridActionRebuildHeroProfileOnClick;
 
@@ -126,7 +128,9 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         private void GridWalletsOnUserDeletingRow(object sender, GridViewRowCancelEventArgs e)
         {
-            if (RadMessageBox.Show(this, "Are you sure you want to delete all selected wallets?\r\nIt will stop any active QuestInstances for those wallets as well.", "Delete Selected Wallets",
+            if (RadMessageBox.Show(this,
+                    "Are you sure you want to delete all selected wallets?\r\nIt will stop any active QuestInstances for those wallets as well.",
+                    "Delete Selected Wallets",
                     MessageBoxButtons.YesNo) == DialogResult.No)
                 e.Cancel = true;
             else
@@ -185,76 +189,92 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         private void mnuSendOneAndOnboardToDfk_Click(object sender, EventArgs e)
         {
+            mnuMainMenu.Enabled = false;
+
             new frmSendONEToWallets().ShowDialog(this);
 
             LoadDataToGrid();
+
+            mnuMainMenu.Enabled = true;
         }
 
         private async void mnuOnboardToDfk_Click(object sender, EventArgs e)
         {
-            mnuOnboardToDfk.Enabled = false;
+            mnuMainMenu.Enabled = false;
 
             //Get wallets that need onboarded
             var onboardedAccounts = false;
 
             foreach (var wallet in WalletManager.GetWallets().Where(x => !x.HasDkProfile))
             {
-                //var onboardResult = await new ProfileContractHandler().CreateProfile()
-                var dfkOnboardResult = await
-                    new ProfileContractHandler().CreateProfile(wallet,
-                        wallet.Name);
-                if (dfkOnboardResult)
+                wallet.DfkProfile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
+                if (wallet.DfkProfile == null)
                 {
-                    eventHub.Publish(new MessageEvent()
+                    var dfkOnboardResult = await
+                        new ProfileContractHandler().CreateProfile(wallet,
+                            wallet.Name);
+                    if (dfkOnboardResult)
                     {
-                        Content =
-                            $"[Wallet:{wallet.Address}] has been onboarded to DFK!"
-                    });
+                        await eventHub.PublishAsync(new MessageEvent()
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] has been onboarded to DFK!"
+                        });
 
-                    var newDfkProfile =
-                        await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
-
-                    wallet.DfkProfile = newDfkProfile;
+                        wallet.DfkProfile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
 
 
-                    onboardedAccounts = true;
+                        onboardedAccounts = true;
+                    }
                 }
-
             }
 
             if (onboardedAccounts)
                 WalletManager.SaveWallets();
 
-            mnuOnboardToDfk.Enabled = true;
+            mnuMainMenu.Enabled = true;
         }
 
         private void mnuSendHeroesToWallets_Click(object sender, EventArgs e)
         {
+            mnuMainMenu.Enabled = false;
+
             new frmSendHeroesToWallets().ShowDialog(this);
 
             LoadDataToGrid();
+
+            mnuMainMenu.Enabled = true;
         }
 
         private void mnuGenerateNewWallets_Click(object sender, EventArgs e)
         {
+            mnuMainMenu.Enabled = false;
+
             new frmCreateNewWallets().ShowDialog(this);
 
             LoadDataToGrid();
+
+            mnuMainMenu.Enabled = true;
         }
 
         private void mnuReIInitSelectedWallets_Click(object sender, EventArgs e)
         {
-            mnuReIInitSelectedWallets.Enabled = false;
+            mnuMainMenu.Enabled = false;
 
             //Get 
 
 
-            mnuReIInitSelectedWallets.Enabled = true;
+            mnuMainMenu.Enabled = true;
         }
 
         private void mnuRecallHerosToSourceWallet_Click(object sender, EventArgs e)
         {
+            mnuMainMenu.Enabled = false;
 
+            //Get 
+
+
+            mnuMainMenu.Enabled = true;
         }
 
         #endregion
@@ -305,14 +325,11 @@ namespace DefiKindom_QuestRunner.Dialogs
                                     wallet.AssignedHero);
                             if (heroSentToWalletResult)
                             {
-                                eventHub.Publish(new MessageEvent()
+                                await eventHub.PublishAsync(new MessageEvent()
                                 {
                                     Content =
                                         $"[Wallet:{sourceWallet.Address}] => Received => [Hero:{wallet.AssignedHero}] (Recalled Action)"
                                 });
-
-                                //Update wallet that HAD the hero as NOT having a hero now
-                                WalletManager.UpdateWalletAssignedHero(wallet.WalletAccount.Address, 0);
                             }
 
                             WalletManager.ReloadWalletHeroData(sourceWallet.Address);
@@ -321,7 +338,7 @@ namespace DefiKindom_QuestRunner.Dialogs
 
                             LoadDataToGrid();
 
-                            RadMessageBox.Show(this, $"{wallet.Name}'s Hero has been recalled back to source wallet!",
+                            ShowRadAlertMessageBox($"{wallet.Name}'s Hero has been recalled back to source wallet!",
                                 "Hero Recalled");
                         }
                     }
@@ -343,7 +360,7 @@ namespace DefiKindom_QuestRunner.Dialogs
                 {
                     if (walletToReceiveHero.AssignedHero > 0)
                     {
-                        RadMessageBox.Show(this,
+                        ShowRadAlertMessageBox(
                             "This wallet already has a hero assigned.\r\nOnly a single hero is supported currently!",
                             "Hero Exists!");
                         return;
@@ -356,14 +373,16 @@ namespace DefiKindom_QuestRunner.Dialogs
                             sourceWallet.AvailableHeroes.FirstOrDefault(x => x != sourceWallet.AssignedHero);
 
                         var heroSentToWalletResult =
-                            await new HeroContractHandler().SendHeroToWallet(sourceWallet, walletToReceiveHero.WalletAccount,
+                            await new HeroContractHandler().SendHeroToWallet(sourceWallet,
+                                walletToReceiveHero.WalletAccount,
                                 firstAvailableHero);
                         if (heroSentToWalletResult)
                         {
-                            WalletManager.UpdateWalletAssignedHero(walletToReceiveHero.WalletAccount.Address,
-                                firstAvailableHero);
-
-                            eventHub.Publish(new MessageEvent() { Content = $"[Wallet:{walletToReceiveHero.Address}] => Received => [Hero:{firstAvailableHero}]" });
+                            await eventHub.PublishAsync(new MessageEvent()
+                            {
+                                Content =
+                                    $"[Wallet:{walletToReceiveHero.Address}] => Received => [Hero:{firstAvailableHero}]"
+                            });
                         }
 
                         WalletManager.ReloadWalletHeroData(walletToReceiveHero.Address);
@@ -372,7 +391,9 @@ namespace DefiKindom_QuestRunner.Dialogs
 
                         LoadDataToGrid();
 
-                        RadMessageBox.Show(this, $"Hero {firstAvailableHero} transferred to wallet {walletToReceiveHero.Address}", "Hero Sent To Wallet");
+                        ShowRadAlertMessageBox(
+                            $"Hero {firstAvailableHero} transferred to wallet {walletToReceiveHero.Address}",
+                            "Hero Sent To Wallet");
                     }
                 }
             }
@@ -403,12 +424,13 @@ namespace DefiKindom_QuestRunner.Dialogs
 
                         if (sendJewelResponse.Result)
                         {
-                            RadMessageBox.Show(this, $"Jewel has been transferred to wallet: {sendJewelTo.Name}!",
+                            ShowRadAlertMessageBox($"Jewel has been transferred to wallet: {sendJewelTo.Name}!",
                                 "Jewel Transferred!");
                         }
                         else
                         {
-                            RadMessageBox.Show(this, $"An error occurred trying to send the jewel to: {sendJewelTo.Name}!",
+                            ShowRadAlertMessageBox(
+                                $"An error occurred trying to send the jewel to: {sendJewelTo.Name}!",
                                 "Jewel Transferred ERROR");
                         }
 
@@ -507,21 +529,25 @@ namespace DefiKindom_QuestRunner.Dialogs
                 Invoke(new LoadDataToGridDelegate(LoadDataToGrid));
             else
             {
-                var currentWallets = WalletManager.GetWallets();
+                var wallets = WalletManager.GetWallets();
+                if (wallets != null)
+                {
+                    //Refresh grid
+                    gridWallets.SuspendLayout();
+                    gridWallets.DataSource = wallets;
+                    gridWallets.Refresh();
+                    gridWallets.ResumeLayout();
 
-                //Refresh grid
-                gridWallets.SuspendLayout();
-                gridWallets.DataSource = currentWallets;
-                gridWallets.Refresh();
-                gridWallets.ResumeLayout();
 
-                lblWalletStatusInfo.Text = $@"Managing ({currentWallets.Count}) Wallets";
+                    lblWalletStatusInfo.Text = $@"Managing ({wallets.Count}) Wallets";
+                    lblWalletsThatCanQuest.Text = $@"({wallets.Count(x=>x.ReadyToWork)}) Wallets Are Quest Ready";
+                }
             }
         }
 
         void LoadSelectedWalletToUx(DfkWallet rowDataItem)
         {
-            if(rowDataItem == null) return;
+            if (rowDataItem == null) return;
 
 
             /*
@@ -553,5 +579,18 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         #endregion
 
+        #region MessageBox Alert
+
+        void ShowRadAlertMessageBox(string text, string title)
+        {
+            if (InvokeRequired)
+                Invoke(new ShowRadAlertMessageBoxDelegate(ShowRadAlertMessageBox), text, title);
+            else
+            {
+                RadMessageBox.Show(this, text, title);
+            }
+        }
+
+        #endregion
     }
 }

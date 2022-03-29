@@ -74,11 +74,13 @@
             this.radMenuSeparatorItem8 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuGridActionSendJewelTo = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
+            this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
+            this.lblWalletsThatCanQuest = new Telerik.WinControls.UI.RadLabelElement();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             this.SuspendLayout();
             // 
             // gridWallets
@@ -212,7 +214,9 @@
             // radStatusStrip1
             // 
             this.radStatusStrip1.Items.AddRange(new Telerik.WinControls.RadItem[] {
-            this.lblWalletStatusInfo});
+            this.lblWalletStatusInfo,
+            this.commandBarSeparator1,
+            this.lblWalletsThatCanQuest});
             this.radStatusStrip1.Location = new System.Drawing.Point(0, 562);
             this.radStatusStrip1.Name = "radStatusStrip1";
             this.radStatusStrip1.Size = new System.Drawing.Size(894, 24);
@@ -242,7 +246,7 @@
             // mnuSendOneAndOnboardToDfk
             // 
             this.mnuSendOneAndOnboardToDfk.Name = "mnuSendOneAndOnboardToDfk";
-            this.mnuSendOneAndOnboardToDfk.Text = "Send ONE && Onboard To DFK (If NOT already)";
+            this.mnuSendOneAndOnboardToDfk.Text = "Send ONE To Wallets";
             this.mnuSendOneAndOnboardToDfk.Click += new System.EventHandler(this.mnuSendOneAndOnboardToDfk_Click);
             // 
             // mnuOnboardToDfk
@@ -378,12 +382,6 @@
             this.mnuGridActionSendJewelTo.Name = "mnuGridActionSendJewelTo";
             this.mnuGridActionSendJewelTo.Text = "Send jewel to wallet";
             // 
-            // frmManageAllWallets
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(894, 586);
-            // 
             // mnuMainMenu
             // 
             this.mnuMainMenu.Items.AddRange(new Telerik.WinControls.RadItem[] {
@@ -393,6 +391,26 @@
             this.mnuMainMenu.Size = new System.Drawing.Size(894, 37);
             this.mnuMainMenu.TabIndex = 0;
             this.mnuMainMenu.ThemeName = "Material";
+            // 
+            // commandBarSeparator1
+            // 
+            this.commandBarSeparator1.Name = "commandBarSeparator1";
+            this.radStatusStrip1.SetSpring(this.commandBarSeparator1, false);
+            this.commandBarSeparator1.Text = "";
+            this.commandBarSeparator1.VisibleInOverflowMenu = false;
+            // 
+            // lblWalletsThatCanQuest
+            // 
+            this.lblWalletsThatCanQuest.Name = "lblWalletsThatCanQuest";
+            this.radStatusStrip1.SetSpring(this.lblWalletsThatCanQuest, false);
+            this.lblWalletsThatCanQuest.Text = "(0) Wallets Are Quest Ready";
+            this.lblWalletsThatCanQuest.TextWrap = true;
+            // 
+            // frmManageAllWallets
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(894, 586);
             this.Controls.Add(this.gridWallets);
             this.Controls.Add(this.mnuMainMenu);
             this.Controls.Add(this.radStatusStrip1);
@@ -449,5 +467,7 @@
         private Telerik.WinControls.UI.RadMenuItem mnuGridActionOnBoardDfk;
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem8;
         private Telerik.WinControls.UI.RadMenu mnuMainMenu;
+        private Telerik.WinControls.UI.CommandBarSeparator commandBarSeparator1;
+        private Telerik.WinControls.UI.RadLabelElement lblWalletsThatCanQuest;
     }
 }

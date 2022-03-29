@@ -33,12 +33,6 @@ namespace DefiKindom_QuestRunner
 {
     public partial class frmConsole : RadForm
     {
-        #region Chart Internals
-
-        private List<WalletsOnQuestsMessageEvent> _walletsInQuestInstance = new List<WalletsOnQuestsMessageEvent>();
-
-        #endregion
-
         #region RadMenu Internals
 
         private RadMenuItem mnuAutoStartQuestingOnStartup;
@@ -323,10 +317,20 @@ namespace DefiKindom_QuestRunner
 
         private async void mnuRunWalletInit_Click(object sender, EventArgs e)
         {
+            if (manageAllWalletsFormInstance != null)
+            {
+                manageAllWalletsFormInstance.Close();
+                manageAllWalletsFormInstance = null;
+            }
+
+            mnuManageAllWallets.Enabled = false;
+
             EnableUxControls(false);
 
             //Init app wallet manager
             await WalletManager.Init();
+
+            mnuManageAllWallets.Enabled = true;
         }
 
         private void mnuAbout_Click(object sender, EventArgs e)
@@ -512,7 +516,11 @@ namespace DefiKindom_QuestRunner
                         break;
 
                     case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled:
-                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Stopped Questing....");
+                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Canceled Questing....");
+                        break;
+
+                    case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingComplete:
+                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Completed Questing....");
                         break;
                 }
 
@@ -771,8 +779,7 @@ namespace DefiKindom_QuestRunner
             try
             {
                 var response =
-                    await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(QuickRequest.ApiRequestTypes
-                        .TestEndpoint);
+                    await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>("/api/verify");
                 if (!response.Success)
                 {
                     RadMessageBox.Show(this, response.Error.ToString(),

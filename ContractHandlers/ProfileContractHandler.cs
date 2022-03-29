@@ -21,7 +21,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             try
             {
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    QuickRequest.ApiRequestTypes.ProfileCreate, new DfkProfileCreateRequest
+                    "/api/profile/create", new DfkProfileCreateRequest
                     {
                         Wallet = new SmallWalletItem
                         {

@@ -51,7 +51,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                     return true;
 
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    QuickRequest.ApiRequestTypes.MoveJewel, new JewelTransferRequest
+                    "/api/jewel/transfer", new JewelTransferRequest
                     {
                         Wallet = new SmallWalletItem
                         {

@@ -64,9 +64,9 @@
             this.chkSendToNewWalletsOnly.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkSendToNewWalletsOnly.Location = new System.Drawing.Point(22, 129);
             this.chkSendToNewWalletsOnly.Name = "chkSendToNewWalletsOnly";
-            this.chkSendToNewWalletsOnly.Size = new System.Drawing.Size(229, 19);
+            this.chkSendToNewWalletsOnly.Size = new System.Drawing.Size(281, 19);
             this.chkSendToNewWalletsOnly.TabIndex = 3;
-            this.chkSendToNewWalletsOnly.Text = "Send to wallets w/o balance > 5";
+            this.chkSendToNewWalletsOnly.Text = "Send to NEW Wallets Only (Balance < 5)";
             this.chkSendToNewWalletsOnly.ThemeName = "Material";
             this.chkSendToNewWalletsOnly.ToggleState = Telerik.WinControls.Enumerations.ToggleState.On;
             // 

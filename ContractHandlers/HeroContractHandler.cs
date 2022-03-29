@@ -36,7 +36,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
             }
 
-            return null;
+            return new List<int>();
         }
 
 
@@ -176,7 +176,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             try
             {
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    QuickRequest.ApiRequestTypes.HeroTransfer,
+                    "/api/hero/transfer",
                     new TransferHeroRequest
                     {
                         Wallet = new SmallWalletItem

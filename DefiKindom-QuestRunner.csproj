@@ -329,6 +329,8 @@
   <ItemGroup>
     <Compile Include="Abis\Objects\DKProfile.cs" />
     <Compile Include="ApiHandler\Objects\DfkProfileCreateRequest.cs" />
+    <Compile Include="ApiHandler\Objects\FundWalletWithOne.cs" />
+    <Compile Include="ApiHandler\Objects\FundWalletWithOneResponse.cs" />
     <Compile Include="ApiHandler\Objects\GeneralTransactionResponse.cs" />
     <Compile Include="ApiHandler\Objects\JewelTransferRequest.cs" />
     <Compile Include="ApiHandler\Objects\QuestCancelRequest.cs" />

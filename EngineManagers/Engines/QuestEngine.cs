@@ -32,10 +32,10 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
         public enum QuestActivityMode
         {
-            Init,
             WantsToQuest,
             Questing,
             WantsToCancelQuest,
+            WantsToCompleteQuest,
             WaitingOnStamina,
         }
 
@@ -56,14 +56,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
         QuestEngine()
         {
             eventHub.Subscribe<NeedJewelEvent>(NeedJewelEventHandler);
-        }
-
-        public QuestEngine(DfkWallet wallet, QuestTypes type) : this()
-        {
-            DfkWallet = wallet;
-            QuestType = type;
-
-            QuestCurrentMode = QuestActivityMode.Init;
         }
 
         public QuestEngine(DfkWallet wallet, QuestTypes type, QuestActivityMode mode) : this()
@@ -88,6 +80,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
             //We need to determine what mode the instance is starting as and determine if the app needs the jewel
             switch (QuestCurrentMode)
             {
+                case QuestActivityMode.WantsToCompleteQuest:
                 case QuestActivityMode.WantsToCancelQuest:
                 case QuestActivityMode.WantsToQuest:
                     await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel));
@@ -122,32 +115,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
             {
                 switch (QuestCurrentMode)
                 {
-                    //First time quest instance is firing up
-                    case QuestActivityMode.Init:
-                        //Check current wallet status
-                        DfkWallet.AssignedHeroQuestStatus =
-                            await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
-                                DfkWallet.AssignedHero);
-
-                        if (DfkWallet.ReadyToWork)
-                        {
-                            //Do we have quest data on the block chain?
-                            if (DfkWallet.AssignedHeroQuestStatus != null &&
-                                !DfkWallet.AssignedHeroQuestStatus.IsQuesting)
-                            {
-                                //Wallet CAN work on the blockchain and isnt on a active quest
-                                QuestCurrentMode = QuestActivityMode.WantsToQuest;
-
-                                timerCheckInstanceStatus.Enabled = true;
-                                return;
-                            }
-
-                            //No available quest info available
-                            //lets move to "waiting on stamina so that it checks and fires up wants to quest
-                            QuestCurrentMode = QuestActivityMode.WantsToQuest;
-                        }
-                        break;
-
                     //We know 100% we're questing, now we must determine if its time to CANCEL!
                     case QuestActivityMode.Questing:
                         //Compare start time to now. If time >= 155 minutes then we must move to CANCEL event
@@ -189,6 +156,28 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                         }
                         break;
 
+
+                    case QuestActivityMode.WantsToCompleteQuest:
+                        if (_hasTheJewel)
+                        {
+                            //Lets cancel the quest
+                            var cancelQuestResponse = await
+                                new QuestContractHandler().CompleteQuesting(DfkWallet,
+                                    DfkWallet.AssignedHero);
+                            if (cancelQuestResponse)
+                            {
+                                QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
+
+                                //Tell system your not questing now
+                                await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingComplete));
+
+                                //Lets tell jewel manager we're done (only if we succesfully completed quest contract)
+                                await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                            }
+                        }
+                        break;
+
+
                     case QuestActivityMode.WantsToCancelQuest:
                         if (_hasTheJewel)
                         {
@@ -202,10 +191,10 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
                                 //Tell system your not questing now
                                 await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled));
-                            }
 
-                            //Lets tell jewel manager we're done
-                            await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                                //Lets tell jewel manager we're done (only if we succesfully canceled quest contract)
+                                await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                            }
                         }
                         break;
 
@@ -222,10 +211,10 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
                                 //Tell system your questing
                                 await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
-                            }
 
-                            //Lets tell jewel manager we're done
-                            await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                                //Lets tell jewel manager we're done (only if we succesfully started quest contract)
+                                await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                            }
                         }
                         break;
                 }

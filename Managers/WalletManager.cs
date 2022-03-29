@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using DefiKindom_QuestRunner.Abis.Objects;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
 
@@ -50,7 +51,7 @@ namespace DefiKindom_QuestRunner.Managers
             {
                 Wallets = new List<DfkWallet>();
 
-                eventHub.Publish(new MessageEvent
+                await eventHub.PublishAsync(new MessageEvent
                     { Content = $"No Wallets. Please import a wallet or generate new one(s)..." });
 
                 return;
@@ -68,94 +69,11 @@ namespace DefiKindom_QuestRunner.Managers
                 SaveWallets();
             }
 
-            eventHub.Publish(new WalletDataRefreshEvent { Complete = true });
+            await eventHub.PublishAsync(new WalletDataRefreshEvent { Complete = true });
 
             IsLoaded = true;
 
             SubscribeToEvents();
-        }
-
-        public static async Task<int> OnBoardQuestInstances()
-        {
-            var instancesStarted = 0;
-
-            IEnumerable<DfkWallet> instancesToOnBoard;
-
-            lock (Wallets)
-                instancesToOnBoard = Wallets.Where(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile);
-
-            foreach (var wallet in instancesToOnBoard)
-            {
-                instancesStarted++;
-
-                //Check Hero Stamina and current quest status
-                wallet.AssignedHeroQuestStatus = await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
-                wallet.AssignedHeroStamina =
-                    await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
-
-                eventHub.Publish(new MessageEvent
-                {
-                    Content =
-                        $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Creating Quest Instance..."
-                });
-
-                //Wallet is already questing 
-                if (wallet.IsQuesting)
-                {
-                    //Does the quest need to be canceled ?
-                    if (wallet.QuestNeedsCanceled)
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.WantsToCancelQuest));
-
-                        eventHub.Publish(new MessageEvent
-                        {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Canceled)"
-                        });
-                    }
-                    else
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.Questing));
-
-                        eventHub.Publish(new MessageEvent
-                        {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing)"
-                        });
-                    }
-                }
-                else
-                {
-                    //Wallet isnt questing. Is there enough stamina ?
-                    if (wallet.AssignedHeroStamina >= 15)
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.WantsToQuest));
-
-                        eventHub.Publish(new MessageEvent
-                        {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
-                        });
-                    }
-                    else
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.WaitingOnStamina));
-
-                        eventHub.Publish(new MessageEvent
-                        {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
-                        });
-                    }
-                }
-            }
-
-
-            return instancesStarted;
         }
 
         #endregion
@@ -207,15 +125,8 @@ namespace DefiKindom_QuestRunner.Managers
             switch (msgEvent.OnQuestMessageEventType)
             {
                 case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing:
-                    if (wallet != null)
-                    {
-                        wallet.AssignedHeroQuestStatus =
-                            await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount,
-                                wallet.AssignedHero);
-                    }
-                    break;
-
                 case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled:
+                case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingComplete:
                     if (wallet != null)
                     {
                         wallet.AssignedHeroQuestStatus =
@@ -252,6 +163,12 @@ namespace DefiKindom_QuestRunner.Managers
 
                     wallet.HeroProfiles.Add(heroDetails);
                 }
+
+                //Is there an assigned hero? If not assign first one in the list!
+                if (wallet.AssignedHero == 0 && wallet.AvailableHeroes.Count > 0)
+                    wallet.AssignedHero = wallet.AvailableHeroes.FirstOrDefault();
+                else
+                    wallet.AssignedHero = 0;
 
                 //Get current stamina info for the hero
                 wallet.AssignedHeroStamina =
@@ -373,9 +290,15 @@ namespace DefiKindom_QuestRunner.Managers
 
                 //Find out if the wallet still has an assigned hero
                 if (wallet.AvailableHeroes == null)
+                {
                     wallet.AssignedHero = 0;
+                    wallet.AssignedHeroStamina = 0;
+                }
                 else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                {
                     wallet.AssignedHero = 0;
+                    wallet.AssignedHeroStamina = 0;
+                }
                 else
                     wallet.AssignedHero = walletHeroes[0];
 
@@ -514,14 +437,14 @@ namespace DefiKindom_QuestRunner.Managers
             }
         }
 
-        public static async Task<List<DfkWallet>> CreateWallets(int amount, string namePrefix)
+        public static async Task<DfkWallet> CreateWallet(string name)
         {
-            var newWallets = await new QuickRequest().GetDfkApiResponse<List<DfkWallet>>(
-                QuickRequest.ApiRequestTypes.WalletCreate,
+            var newWallet = await new QuickRequest().GetDfkApiResponse<DfkWallet>(
+                "/api/wallets/create",
                 new WalletCreateRequest
-                    {CreateAmount = amount, NamePrefix = namePrefix});
+                    { Name = name });
 
-            return newWallets;
+            return newWallet;
         }
 
         public static Wallet ImportWallet(string words)
@@ -624,16 +547,100 @@ namespace DefiKindom_QuestRunner.Managers
             SaveWallets();
         }
 
-        public static void UpdateWalletAssignedHero(string address, int heroId)
+        #endregion
+
+        #region Quest Instance Methods
+
+        public static async Task<int> OnBoardQuestInstances()
         {
+            var instancesStarted = 0;
+
+            IEnumerable<DfkWallet> instancesToOnBoard;
+
             lock (Wallets)
+                instancesToOnBoard = Wallets.Where(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile);
+
+            foreach (var wallet in instancesToOnBoard)
             {
-                foreach (var wallet in Wallets.Where(wallet => wallet.Address.Trim().ToUpper() == address.Trim().ToUpper()))
+                instancesStarted++;
+
+                //Check Hero Stamina and current quest status
+                wallet.AssignedHeroQuestStatus = await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
+                wallet.AssignedHeroStamina =
+                    await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
+
+                eventHub.Publish(new MessageEvent
                 {
-                    wallet.AssignedHero = heroId;
-                    break;
+                    Content =
+                        $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Creating Quest Instance..."
+                });
+
+                //Wallet is already questing 
+                if (wallet.IsQuesting)
+                {
+                    if (wallet.QuestNeedsCompleted)
+                    {
+                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                            QuestEngine.QuestActivityMode.WantsToCompleteQuest));
+
+                        eventHub.Publish(new MessageEvent
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Completed)"
+                        });
+                    } else if (wallet.QuestNeedsCanceled)
+                    {
+                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                            QuestEngine.QuestActivityMode.WantsToCancelQuest));
+
+                        eventHub.Publish(new MessageEvent
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Canceled)"
+                        });
+                    }
+                    else
+                    {
+                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                            QuestEngine.QuestActivityMode.Questing));
+
+                        eventHub.Publish(new MessageEvent
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing)"
+                        });
+                    }
+                }
+                else
+                {
+                    //Wallet isnt questing. Is there enough stamina ?
+                    if (wallet.AssignedHeroStamina >= 15)
+                    {
+                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                            QuestEngine.QuestActivityMode.WantsToQuest));
+
+                        eventHub.Publish(new MessageEvent
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
+                        });
+                    }
+                    else
+                    {
+                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                            QuestEngine.QuestActivityMode.WaitingOnStamina));
+
+                        eventHub.Publish(new MessageEvent
+                        {
+                            Content =
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
+                        });
+                    }
                 }
             }
+
+
+            return instancesStarted;
         }
 
         #endregion

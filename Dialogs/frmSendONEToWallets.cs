@@ -1,25 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using DefiKindom_QuestRunner.Managers;
-using DefiKindom_QuestRunner.Managers.Contracts;
-using DefiKindom_QuestRunner.Objects;
+
 using PubSub;
 using Telerik.WinControls;
 using Telerik.WinControls.UI;
+
+using DefiKindom_QuestRunner.Managers;
+using DefiKindom_QuestRunner.Managers.Contracts;
+using DefiKindom_QuestRunner.Objects;
 
 namespace DefiKindom_QuestRunner.Dialogs
 {
     public partial class frmSendONEToWallets : RadForm
     {
+        #region Delegates
+
+        private delegate void ShowRadAlertMessageBoxDelegate(string text, string title);
+
+        #endregion
+
+        #region Internals
+
         Hub eventHub = Hub.Default;
         DfkWallet _wallet = null;
+
+        #endregion
+
+        #region Constructor(s)
 
         public frmSendONEToWallets()
         {
@@ -31,6 +40,9 @@ namespace DefiKindom_QuestRunner.Dialogs
             _wallet = wallet;
         }
 
+        #endregion
+
+        #region Form Events
 
         private void frmSendONEToWallets_Load(object sender, EventArgs e)
         {
@@ -41,6 +53,10 @@ namespace DefiKindom_QuestRunner.Dialogs
             }
         }
 
+        #endregion
+
+        #region Button Events
+
         private async void btnSendOne_Click(object sender, EventArgs e)
         {
             if (txtOneAmountToSend.Value == 0)
@@ -49,12 +65,27 @@ namespace DefiKindom_QuestRunner.Dialogs
                 return;
             }
 
-            Enabled = false;
+            btnSendOne.Enabled = false;
+
+            Closing += delegate (object o, CancelEventArgs args) { args.Cancel = true; };
 
             //Update TExt
             btnSendOne.Text = @"Sending ONE...Please wait...";
 
+            await Task.Run(SendOneToWallets);
 
+            Closing -= null;
+
+            btnSendOne.Text = @"Send ONE";
+            btnSendOne.Enabled = true;
+        }
+
+        #endregion
+
+        #region Send One To Wallets
+
+        async Task<bool> SendOneToWallets()
+        {
             try
             {
                 if (_wallet != null)
@@ -66,63 +97,48 @@ namespace DefiKindom_QuestRunner.Dialogs
                         var totalOneToBeConsumed = txtOneAmountToSend.Value * 1;
                         if (totalOneToBeConsumed > sourceWallet.CurrentBalance)
                         {
-                            RadMessageBox.Show(this, $"You do not have enough ONE on your source wallet!\r\nYou Need a total of: {totalOneToBeConsumed} ONE", "Insufficient ONE Balance on Source account!");
-                            return;
+                            ShowRadAlertMessageBox($"You do not have enough ONE on your source wallet!\r\nYou Need a total of: {totalOneToBeConsumed} ONE", "Insufficient ONE Balance on Source account!");
+                            return false;
                         }
 
-                        var fundRequestResponse = await new OneContractHandler().SendHarmonyONE(sourceWallet.WalletAccount,
-                            _wallet.Address, txtOneAmountToSend.Value);
+                        var fundRequestResponse = await new OneContractHandler().SendHarmonyONE(sourceWallet,
+                            _wallet.Address, Convert.ToInt32(txtOneAmountToSend.Value));
                         if (fundRequestResponse.Success)
                         {
-                            //Update wallet with new balace
-                            var updatedWalletBalance = await new OneContractHandler().CheckHarmonyONEBalance(_wallet.WalletAccount);
-                            _wallet.CurrentBalance = updatedWalletBalance;
+                            //Update Wallet Balance
+                            _wallet.CurrentBalance = fundRequestResponse.Balance;
 
-                            eventHub.Publish(new MessageEvent()
+                            await eventHub.PublishAsync(new MessageEvent()
                             {
                                 Content =
-                                    $"[Transaction Hash:{fundRequestResponse.TransactionHash}] => [Wallet:{_wallet.Address}] has been funded with a total of {txtOneAmountToSend.Value} ONE."
+                                    $"[Wallet:{_wallet.Address}] has been funded with a total of {fundRequestResponse.Balance} ONE."
                             });
-
-
-                            //onboard wallet now to DFK
-                            var dfkOnboardResult = await
-                                new ProfileContractHandler().CreateProfile(_wallet,
-                                    _wallet.Name);
-                            if (dfkOnboardResult)
-                            {
-                                eventHub.Publish(new MessageEvent()
-                                {
-                                    Content =
-                                        $"[Wallet:{_wallet.Address}] has been onboarded to DFK!"
-                                });
-
-                                var newDfkProfile =
-                                    await new ProfileContractHandler().GetProfile(_wallet.WalletAccount);
-
-                                _wallet.DfkProfile = newDfkProfile;
-                            }
                         }
                         else
                         {
-                            eventHub.Publish(new MessageEvent() { Content = $"[Wallet:{_wallet.Address}] failed to send ONE to wallet." });
+                            await eventHub.PublishAsync(new MessageEvent() { Content = $"[Wallet:{_wallet.Address}] failed to send ONE to wallet." });
                         }
 
 
                         WalletManager.SaveWallets();
 
-                        RadMessageBox.Show(this, $@"{_wallet.Name} funded. Each with {txtOneAmountToSend.Value} ONE", @"Wallets Funded!");
+                        ShowRadAlertMessageBox($@"{_wallet.Name} funded. Each with {txtOneAmountToSend.Value} ONE", @"Wallets Funded!");
                     }
                     else
                     {
-                        RadMessageBox.Show(this, $@"You must have a SOURCE wallet with ONE in it before trying to fund other wallets/accounts!!!", @"No Source Wallet Found!");
+                        ShowRadAlertMessageBox($@"You must have a SOURCE wallet with ONE in it before trying to fund other wallets/accounts!!!", @"No Source Wallet Found!");
                     }
                 }
                 else
                 {
                     var walletsToBeFunded = chkSendToNewWalletsOnly.Checked
                         ? WalletManager.GetWallets().Where(x => x.CurrentBalance < 5).ToList()
-                        : WalletManager.GetWallets();
+                        : WalletManager.GetWallets().ToList();
+
+                    if (walletsToBeFunded.Count == 0)
+                    {
+                        ShowRadAlertMessageBox($@"All accounts have the minimum of ONE to run", @"No Source Wallet Found!");
+                    }
 
                     var sourceWallet = WalletManager.GetWallets().FirstOrDefault(x => x.IsPrimarySourceWallet);
                     if (sourceWallet != null)
@@ -131,73 +147,64 @@ namespace DefiKindom_QuestRunner.Dialogs
                         var totalOneToBeConsumed = txtOneAmountToSend.Value * walletsToBeFunded.Count;
                         if (totalOneToBeConsumed > sourceWallet.CurrentBalance)
                         {
-                            RadMessageBox.Show(this, $"Your trying to fund {walletsToBeFunded.Count} Wallets but do not have enough ONE on your source wallet!\r\nYou Need a total of: {totalOneToBeConsumed} ONE", "Insufficient ONE Balance on Source account!");
-                            return;
+                            ShowRadAlertMessageBox($"Your trying to fund {walletsToBeFunded.Count} Wallets but do not have enough ONE on your source wallet!\r\nYou Need a total of: {totalOneToBeConsumed} ONE", "Insufficient ONE Balance on Source account!");
+                            return false;
                         }
 
                         foreach (var walletToFundWallet in walletsToBeFunded)
                         {
-                            var fundRequestResponse = await new OneContractHandler().SendHarmonyONE(sourceWallet.WalletAccount,
-                                walletToFundWallet.Address, txtOneAmountToSend.Value);
-                            if (fundRequestResponse.Success)
+                            var fundRequestResponse = await new OneContractHandler().SendHarmonyONE(sourceWallet,
+                                walletToFundWallet.Address, Convert.ToInt32(txtOneAmountToSend.Value));
+                            if (fundRequestResponse != null && fundRequestResponse.Success)
                             {
-                                //Update wallet with new balace
-                                var updatedWalletBalance = await new OneContractHandler().CheckHarmonyONEBalance(walletToFundWallet.WalletAccount);
-                                walletToFundWallet.CurrentBalance = updatedWalletBalance;
-
-                                eventHub.Publish(new MessageEvent()
+                                await eventHub.PublishAsync(new MessageEvent()
                                 {
                                     Content =
-                                        $"[Transaction Hash:{fundRequestResponse.TransactionHash}] => [Wallet:{walletToFundWallet.Address}] has been funded with a total of {txtOneAmountToSend.Value} ONE."
+                                        $"[Wallet:{walletToFundWallet.Address}] has been funded with a total of {fundRequestResponse.Balance} ONE."
                                 });
-
-
-                                //onboard wallet now to DFK
-                                var dfkOnboardResult = await
-                                    new ProfileContractHandler().CreateProfile(walletToFundWallet,
-                                        walletToFundWallet.Name);
-                                if (dfkOnboardResult)
-                                {
-                                    eventHub.Publish(new MessageEvent()
-                                    {
-                                        Content =
-                                            $"[Wallet:{walletToFundWallet.Address}] has been onboarded to DFK!"
-                                    });
-
-                                    var newDfkProfile =
-                                        await new ProfileContractHandler().GetProfile(walletToFundWallet.WalletAccount);
-
-                                    walletToFundWallet.DfkProfile = newDfkProfile;
-                                }
                             }
                             else
                             {
-                                eventHub.Publish(new MessageEvent() { Content = $"[Wallet:{walletToFundWallet.Address}] failed to send ONE to wallet." });
+                                await eventHub.PublishAsync(new MessageEvent() { Content = $"[Wallet:{walletToFundWallet.Address}] failed to send ONE to wallet." });
                             }
                         }
 
 
                         WalletManager.SaveWallets();
 
-                        RadMessageBox.Show(this, $@"{walletsToBeFunded.Count} funded. Each with {txtOneAmountToSend.Value} ONE", @"Wallets Funded!");
+                        ShowRadAlertMessageBox($@"{walletsToBeFunded.Count} funded. Each with {txtOneAmountToSend.Value} ONE", @"Wallets Funded!");
                     }
                     else
                     {
-                        RadMessageBox.Show(this, $@"You must have a SOURCE wallet with ONE in it before trying to fund other wallets/accounts!!!", @"No Source Wallet Found!");
+                        ShowRadAlertMessageBox($@"You must have a SOURCE wallet with ONE in it before trying to fund other wallets/accounts!!!", @"No Source Wallet Found!");
                     }
                 }
 
 
                 Close();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                eventHub.Publish(new NotificationEvent { IsError = true, Content = ex.Message });
+                await eventHub.PublishAsync(new NotificationEvent { IsError = true, Content = ex.Message });
             }
 
-            btnSendOne.Text = "Send ONE";
-
-            Enabled = true;
+            return true;
         }
+
+        #endregion
+
+        #region MessageBox Handler
+
+        void ShowRadAlertMessageBox(string text, string title)
+        {
+            if (InvokeRequired)
+                Invoke(new ShowRadAlertMessageBoxDelegate(ShowRadAlertMessageBox), text, title);
+            else
+            {
+                RadMessageBox.Show(this, text, title);
+            }
+        }
+
+        #endregion
     }
 }

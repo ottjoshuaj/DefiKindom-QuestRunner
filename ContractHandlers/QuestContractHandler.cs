@@ -94,12 +94,62 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return -1;
         }
 
+
         public async Task<bool> CancelQuesting(DfkWallet wallet, int heroId)
         {
             try
             {
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    QuickRequest.ApiRequestTypes.StartQuest,
+                    "/api/quest/cancel",
+                    new QuestStartRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = wallet.Name,
+                            Address = wallet.Address,
+                            PrivateKey = wallet.PrivateKey,
+                            PublicKey = wallet.PublicKey,
+                            MnemonicPhrase = wallet.MnemonicPhrase
+                        },
+                        HeroId = heroId
+                    });
+
+                return response.Success;
+
+                /*
+                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
+                {
+                    TransactionManager =
+                    {
+                        UseLegacyAsDefault = true,
+                        EstimateOrSetDefaultGasIfNotSet = true
+                    }
+                };
+
+                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
+                    Settings.Default.QuestContractAddress.Trim());
+                var gas = new HexBigInteger(new BigInteger(400000));
+                var value = new HexBigInteger(new BigInteger(0));
+
+                var receiptForSetFunctionCall = await contract.GetFunction("cancelQuest")
+                    .SendTransactionAndWaitForReceiptAsync(account.Address, gas, value, null, heroId);
+                return !string.IsNullOrWhiteSpace(receiptForSetFunctionCall.TransactionHash);
+                */
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return false;
+        }
+
+        public async Task<bool> CompleteQuesting(DfkWallet wallet, int heroId)
+        {
+            try
+            {
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    "/api/quest/complete",
                     new QuestStartRequest
                     {
                         Wallet = new SmallWalletItem
@@ -148,7 +198,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             try
             {
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    QuickRequest.ApiRequestTypes.StartQuest,
+                    "/api/quest/start",
                     new QuestStartRequest
                     {
                         Wallet = new SmallWalletItem
@@ -235,38 +285,6 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                     return new QuestAddressToType
                     {
                         TypeId = contractResult[0].ConvertToInt()
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-
-            }
-
-            return null;
-        }
-
-
-        public async Task<DfkHeroInformation> GetHeroDetails(Account account, int heroId)
-        {
-            try
-            {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("getHero");
-                var contractResult =
-                    await contractFunction.CallDecodingToDefaultAsync(heroId);
-
-                if (contractResult != null && contractResult.Count > 0)
-                {
-                    //TypeId = contractResult[0].ConvertToInt()
-
-                    return new DfkHeroInformation
-                    {
-                        
                     };
                 }
             }
