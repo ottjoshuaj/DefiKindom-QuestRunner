@@ -79,22 +79,26 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
         #region Public Methods
 
         //Self managing wallet mining, returning to mine , cancel, etc
-        public void Start()
+        public async void Start()
         {
             HookUpTimer();
 
-            eventHub.Publish(new MessageEvent {Content = $"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] Added to QuestEngine & QuestInstance is running..."});
+            await eventHub.PublishAsync(new MessageEvent {Content = $"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] Added to QuestEngine & QuestInstance is running..."});
+
+            await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting));
 
             //Call timer first time Manually
             TimerCheckInstanceStatusOnElapsed(null, null);
         }
 
-        public void Stop()
+        public async void Stop()
         {
             timerCheckInstanceStatus.Enabled = false;
             timerCheckInstanceStatus.Elapsed -= null;
             timerCheckInstanceStatus.Dispose();
             timerCheckInstanceStatus = null;
+
+            await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStopping));
         }
 
         #endregion

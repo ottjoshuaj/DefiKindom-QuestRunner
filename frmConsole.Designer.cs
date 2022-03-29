@@ -57,8 +57,6 @@
             this.toolStripWalletCount = new Telerik.WinControls.UI.RadLabelElement();
             this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
             this.toolStripJewelAmount = new Telerik.WinControls.UI.RadLabelElement();
-            this.commandBarSeparator2 = new Telerik.WinControls.UI.CommandBarSeparator();
-            this.toolStripWalletsQuesting = new Telerik.WinControls.UI.RadLabelElement();
             this.materialBlueGreyTheme1 = new Telerik.WinControls.Themes.MaterialBlueGreyTheme();
             this.materialPinkTheme1 = new Telerik.WinControls.Themes.MaterialPinkTheme();
             this.materialTheme1 = new Telerik.WinControls.Themes.MaterialTheme();
@@ -71,15 +69,48 @@
             this.fluentDarkTheme1 = new Telerik.WinControls.Themes.FluentDarkTheme();
             this.radThemeManager1 = new Telerik.WinControls.RadThemeManager();
             this.desktopAlert = new Telerik.WinControls.UI.RadDesktopAlert(this.components);
-            this.toolBar = new Telerik.WinControls.UI.RadCommandBar();
-            this.commandBarRowElement1 = new Telerik.WinControls.UI.CommandBarRowElement();
-            this.commandBarStripElement1 = new Telerik.WinControls.UI.CommandBarStripElement();
             this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.dockConsole = new Telerik.WinControls.UI.Docking.RadDock();
+            this.docWindowConsole = new Telerik.WinControls.UI.Docking.DocumentWindow();
+            this.documentContainer1 = new Telerik.WinControls.UI.Docking.DocumentContainer();
+            this.documentTabStrip1 = new Telerik.WinControls.UI.Docking.DocumentTabStrip();
+            this.toolTabStripCharts = new Telerik.WinControls.UI.Docking.ToolTabStrip();
+            this.toolWindowCharts = new Telerik.WinControls.UI.Docking.ToolWindow();
+            this.radSplitContainer1 = new Telerik.WinControls.UI.RadSplitContainer();
+            this.splitPanel1 = new Telerik.WinControls.UI.SplitPanel();
+            this.chartBotsOnline = new Telerik.WinControls.UI.RadChartView();
+            this.splitPanel2 = new Telerik.WinControls.UI.SplitPanel();
+            this.chartHeroesQuesting = new Telerik.WinControls.UI.RadChartView();
+            this.toolWindow1 = new Telerik.WinControls.UI.Docking.ToolWindow();
+            this.toolTabStrip1 = new Telerik.WinControls.UI.Docking.ToolTabStrip();
+            this.toolWindow2 = new Telerik.WinControls.UI.Docking.ToolWindow();
+            this.toolWindow3 = new Telerik.WinControls.UI.Docking.ToolWindow();
+            this.toolTabStrip2 = new Telerik.WinControls.UI.Docking.ToolTabStrip();
             ((System.ComponentModel.ISupportInitialize)(this.cmbRpcUrls.ComboBoxElement)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.toolBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dockConsole)).BeginInit();
+            this.dockConsole.SuspendLayout();
+            this.docWindowConsole.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.documentContainer1)).BeginInit();
+            this.documentContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.documentTabStrip1)).BeginInit();
+            this.documentTabStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStripCharts)).BeginInit();
+            this.toolTabStripCharts.SuspendLayout();
+            this.toolWindowCharts.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.radSplitContainer1)).BeginInit();
+            this.radSplitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitPanel1)).BeginInit();
+            this.splitPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartBotsOnline)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitPanel2)).BeginInit();
+            this.splitPanel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartHeroesQuesting)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStrip1)).BeginInit();
+            this.toolTabStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStrip2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             this.SuspendLayout();
             // 
@@ -244,10 +275,10 @@
             this.txtStatusConsole.DetectUrls = false;
             this.txtStatusConsole.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtStatusConsole.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtStatusConsole.Location = new System.Drawing.Point(0, 85);
+            this.txtStatusConsole.Location = new System.Drawing.Point(0, 0);
             this.txtStatusConsole.Name = "txtStatusConsole";
             this.txtStatusConsole.ReadOnly = true;
-            this.txtStatusConsole.Size = new System.Drawing.Size(967, 516);
+            this.txtStatusConsole.Size = new System.Drawing.Size(928, 676);
             this.txtStatusConsole.TabIndex = 5;
             this.txtStatusConsole.Text = "";
             // 
@@ -256,12 +287,10 @@
             this.radStatusStrip1.Items.AddRange(new Telerik.WinControls.RadItem[] {
             this.toolStripWalletCount,
             this.commandBarSeparator1,
-            this.toolStripJewelAmount,
-            this.commandBarSeparator2,
-            this.toolStripWalletsQuesting});
-            this.radStatusStrip1.Location = new System.Drawing.Point(0, 601);
+            this.toolStripJewelAmount});
+            this.radStatusStrip1.Location = new System.Drawing.Point(0, 771);
             this.radStatusStrip1.Name = "radStatusStrip1";
-            this.radStatusStrip1.Size = new System.Drawing.Size(967, 25);
+            this.radStatusStrip1.Size = new System.Drawing.Size(1280, 25);
             this.radStatusStrip1.TabIndex = 6;
             this.radStatusStrip1.ThemeName = "MaterialBlueGrey";
             // 
@@ -285,48 +314,12 @@
             this.toolStripJewelAmount.Text = "Jewel Earned (0)";
             this.toolStripJewelAmount.TextWrap = true;
             // 
-            // commandBarSeparator2
-            // 
-            this.commandBarSeparator2.Name = "commandBarSeparator2";
-            this.radStatusStrip1.SetSpring(this.commandBarSeparator2, false);
-            this.commandBarSeparator2.VisibleInOverflowMenu = false;
-            // 
-            // toolStripWalletsQuesting
-            // 
-            this.toolStripWalletsQuesting.Name = "toolStripWalletsQuesting";
-            this.radStatusStrip1.SetSpring(this.toolStripWalletsQuesting, false);
-            this.toolStripWalletsQuesting.Text = "Wallets Questing (0)";
-            this.toolStripWalletsQuesting.TextWrap = true;
-            // 
             // desktopAlert
             // 
             this.desktopAlert.AutoSize = true;
             this.desktopAlert.CanMove = false;
             this.desktopAlert.ShowOptionsButton = false;
             this.desktopAlert.ShowPinButton = false;
-            // 
-            // toolBar
-            // 
-            this.toolBar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.toolBar.Location = new System.Drawing.Point(0, 37);
-            this.toolBar.Name = "toolBar";
-            this.toolBar.Rows.AddRange(new Telerik.WinControls.UI.CommandBarRowElement[] {
-            this.commandBarRowElement1});
-            this.toolBar.Size = new System.Drawing.Size(967, 48);
-            this.toolBar.TabIndex = 7;
-            this.toolBar.ThemeName = "Material";
-            // 
-            // commandBarRowElement1
-            // 
-            this.commandBarRowElement1.MinSize = new System.Drawing.Size(25, 25);
-            this.commandBarRowElement1.Name = "commandBarRowElement1";
-            this.commandBarRowElement1.Strips.AddRange(new Telerik.WinControls.UI.CommandBarStripElement[] {
-            this.commandBarStripElement1});
-            // 
-            // commandBarStripElement1
-            // 
-            this.commandBarStripElement1.DisplayName = "commandBarStripElement1";
-            this.commandBarStripElement1.Name = "commandBarStripElement1";
             // 
             // mnuMainMenu
             // 
@@ -337,7 +330,7 @@
             this.mnuAbout});
             this.mnuMainMenu.Location = new System.Drawing.Point(0, 0);
             this.mnuMainMenu.Name = "mnuMainMenu";
-            this.mnuMainMenu.Size = new System.Drawing.Size(967, 37);
+            this.mnuMainMenu.Size = new System.Drawing.Size(1280, 37);
             this.mnuMainMenu.TabIndex = 4;
             this.mnuMainMenu.ThemeName = "MaterialBlueGrey";
             // 
@@ -348,16 +341,239 @@
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             // 
+            // dockConsole
+            // 
+            this.dockConsole.ActiveWindow = this.docWindowConsole;
+            this.dockConsole.Controls.Add(this.documentContainer1);
+            this.dockConsole.Controls.Add(this.toolTabStripCharts);
+            this.dockConsole.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dockConsole.IsCleanUpTarget = true;
+            this.dockConsole.Location = new System.Drawing.Point(0, 37);
+            this.dockConsole.MainDocumentContainer = this.documentContainer1;
+            this.dockConsole.Name = "dockConsole";
+            this.dockConsole.Padding = new System.Windows.Forms.Padding(0);
+            // 
+            // 
+            // 
+            this.dockConsole.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.dockConsole.Size = new System.Drawing.Size(1280, 734);
+            this.dockConsole.SplitterWidth = 8;
+            this.dockConsole.TabIndex = 8;
+            this.dockConsole.TabStop = false;
+            this.dockConsole.ThemeName = "Material";
+            // 
+            // docWindowConsole
+            // 
+            this.docWindowConsole.Controls.Add(this.txtStatusConsole);
+            this.docWindowConsole.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.docWindowConsole.Location = new System.Drawing.Point(4, 54);
+            this.docWindowConsole.Name = "docWindowConsole";
+            this.docWindowConsole.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.TabbedDocument;
+            this.docWindowConsole.Size = new System.Drawing.Size(928, 676);
+            this.docWindowConsole.Text = "Console";
+            // 
+            // documentContainer1
+            // 
+            this.documentContainer1.Controls.Add(this.documentTabStrip1);
+            this.documentContainer1.Name = "documentContainer1";
+            // 
+            // 
+            // 
+            this.documentContainer1.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.documentContainer1.SizeInfo.AbsoluteSize = new System.Drawing.Size(728, 200);
+            this.documentContainer1.SizeInfo.SizeMode = Telerik.WinControls.UI.Docking.SplitPanelSizeMode.Fill;
+            this.documentContainer1.SizeInfo.SplitterCorrection = new System.Drawing.Size(-136, 0);
+            this.documentContainer1.SplitterWidth = 8;
+            this.documentContainer1.ThemeName = "Material";
+            // 
+            // documentTabStrip1
+            // 
+            this.documentTabStrip1.CanUpdateChildIndex = true;
+            this.documentTabStrip1.Controls.Add(this.docWindowConsole);
+            this.documentTabStrip1.Location = new System.Drawing.Point(0, 0);
+            this.documentTabStrip1.Name = "documentTabStrip1";
+            // 
+            // 
+            // 
+            this.documentTabStrip1.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.documentTabStrip1.SelectedIndex = 0;
+            this.documentTabStrip1.Size = new System.Drawing.Size(936, 734);
+            this.documentTabStrip1.TabIndex = 0;
+            this.documentTabStrip1.TabStop = false;
+            this.documentTabStrip1.ThemeName = "Material";
+            // 
+            // toolTabStripCharts
+            // 
+            this.toolTabStripCharts.CanUpdateChildIndex = true;
+            this.toolTabStripCharts.Controls.Add(this.toolWindowCharts);
+            this.toolTabStripCharts.Location = new System.Drawing.Point(944, 0);
+            this.toolTabStripCharts.Name = "toolTabStripCharts";
+            // 
+            // 
+            // 
+            this.toolTabStripCharts.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.toolTabStripCharts.SelectedIndex = 0;
+            this.toolTabStripCharts.Size = new System.Drawing.Size(336, 734);
+            this.toolTabStripCharts.SizeInfo.AbsoluteSize = new System.Drawing.Size(336, 200);
+            this.toolTabStripCharts.SizeInfo.MinimumSize = new System.Drawing.Size(336, 200);
+            this.toolTabStripCharts.SizeInfo.SplitterCorrection = new System.Drawing.Size(136, 0);
+            this.toolTabStripCharts.TabIndex = 1;
+            this.toolTabStripCharts.TabStop = false;
+            this.toolTabStripCharts.ThemeName = "Material";
+            // 
+            // toolWindowCharts
+            // 
+            this.toolWindowCharts.Caption = null;
+            this.toolWindowCharts.Controls.Add(this.radSplitContainer1);
+            this.toolWindowCharts.DocumentButtons = Telerik.WinControls.UI.Docking.DocumentStripButtons.None;
+            this.toolWindowCharts.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolWindowCharts.Location = new System.Drawing.Point(4, 52);
+            this.toolWindowCharts.Name = "toolWindowCharts";
+            this.toolWindowCharts.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.Docked;
+            this.toolWindowCharts.Size = new System.Drawing.Size(328, 678);
+            this.toolWindowCharts.Text = "Statistics";
+            // 
+            // radSplitContainer1
+            // 
+            this.radSplitContainer1.Controls.Add(this.splitPanel1);
+            this.radSplitContainer1.Controls.Add(this.splitPanel2);
+            this.radSplitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.radSplitContainer1.IsCleanUpTarget = true;
+            this.radSplitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.radSplitContainer1.Name = "radSplitContainer1";
+            this.radSplitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // 
+            // 
+            this.radSplitContainer1.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.radSplitContainer1.Size = new System.Drawing.Size(328, 678);
+            this.radSplitContainer1.SplitterWidth = 8;
+            this.radSplitContainer1.TabIndex = 0;
+            this.radSplitContainer1.TabStop = false;
+            this.radSplitContainer1.ThemeName = "Material";
+            // 
+            // splitPanel1
+            // 
+            this.splitPanel1.Controls.Add(this.chartBotsOnline);
+            this.splitPanel1.Location = new System.Drawing.Point(0, 0);
+            this.splitPanel1.Name = "splitPanel1";
+            // 
+            // 
+            // 
+            this.splitPanel1.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.splitPanel1.Size = new System.Drawing.Size(328, 335);
+            this.splitPanel1.TabIndex = 0;
+            this.splitPanel1.TabStop = false;
+            this.splitPanel1.Text = "splitPanel1";
+            this.splitPanel1.ThemeName = "Material";
+            // 
+            // chartBotsOnline
+            // 
+            this.chartBotsOnline.AreaType = Telerik.WinControls.UI.ChartAreaType.Pie;
+            this.chartBotsOnline.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.chartBotsOnline.Location = new System.Drawing.Point(0, 0);
+            this.chartBotsOnline.Name = "chartBotsOnline";
+            this.chartBotsOnline.ShowGrid = false;
+            this.chartBotsOnline.Size = new System.Drawing.Size(328, 335);
+            this.chartBotsOnline.TabIndex = 0;
+            this.chartBotsOnline.ThemeName = "Material";
+            // 
+            // splitPanel2
+            // 
+            this.splitPanel2.Controls.Add(this.chartHeroesQuesting);
+            this.splitPanel2.Location = new System.Drawing.Point(0, 343);
+            this.splitPanel2.Name = "splitPanel2";
+            // 
+            // 
+            // 
+            this.splitPanel2.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.splitPanel2.Size = new System.Drawing.Size(328, 335);
+            this.splitPanel2.TabIndex = 1;
+            this.splitPanel2.TabStop = false;
+            this.splitPanel2.Text = "splitPanel2";
+            this.splitPanel2.ThemeName = "Material";
+            // 
+            // chartHeroesQuesting
+            // 
+            this.chartHeroesQuesting.AreaType = Telerik.WinControls.UI.ChartAreaType.Pie;
+            this.chartHeroesQuesting.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.chartHeroesQuesting.Location = new System.Drawing.Point(0, 0);
+            this.chartHeroesQuesting.Name = "chartHeroesQuesting";
+            this.chartHeroesQuesting.ShowGrid = false;
+            this.chartHeroesQuesting.Size = new System.Drawing.Size(328, 335);
+            this.chartHeroesQuesting.TabIndex = 1;
+            this.chartHeroesQuesting.ThemeName = "Material";
+            // 
+            // toolWindow1
+            // 
+            this.toolWindow1.Caption = null;
+            this.toolWindow1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolWindow1.Location = new System.Drawing.Point(4, 4);
+            this.toolWindow1.Name = "toolWindow1";
+            this.toolWindow1.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.Docked;
+            this.toolWindow1.Size = new System.Drawing.Size(192, 437);
+            this.toolWindow1.Text = "toolWindow1";
+            // 
+            // toolTabStrip1
+            // 
+            this.toolTabStrip1.CanUpdateChildIndex = true;
+            this.toolTabStrip1.Controls.Add(this.toolWindow1);
+            this.toolTabStrip1.Location = new System.Drawing.Point(550, 5);
+            this.toolTabStrip1.Name = "toolTabStrip1";
+            // 
+            // 
+            // 
+            this.toolTabStrip1.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.toolTabStrip1.SelectedIndex = 0;
+            this.toolTabStrip1.Size = new System.Drawing.Size(200, 445);
+            this.toolTabStrip1.TabIndex = 1;
+            this.toolTabStrip1.TabStop = false;
+            this.toolTabStrip1.ThemeName = "Material";
+            // 
+            // toolWindow2
+            // 
+            this.toolWindow2.Caption = null;
+            this.toolWindow2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolWindow2.Location = new System.Drawing.Point(0, 0);
+            this.toolWindow2.Name = "toolWindow2";
+            this.toolWindow2.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.Docked;
+            this.toolWindow2.Size = new System.Drawing.Size(200, 200);
+            this.toolWindow2.Text = "toolWindow2";
+            // 
+            // toolWindow3
+            // 
+            this.toolWindow3.Caption = null;
+            this.toolWindow3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolWindow3.Location = new System.Drawing.Point(0, 0);
+            this.toolWindow3.Name = "toolWindow3";
+            this.toolWindow3.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.Docked;
+            this.toolWindow3.Size = new System.Drawing.Size(200, 200);
+            this.toolWindow3.Text = "toolWindow3";
+            // 
+            // toolTabStrip2
+            // 
+            this.toolTabStrip2.CanUpdateChildIndex = true;
+            this.toolTabStrip2.Location = new System.Drawing.Point(347, 0);
+            this.toolTabStrip2.Name = "toolTabStrip2";
+            // 
+            // 
+            // 
+            this.toolTabStrip2.RootElement.MinSize = new System.Drawing.Size(25, 25);
+            this.toolTabStrip2.Size = new System.Drawing.Size(200, 455);
+            this.toolTabStrip2.TabIndex = 1;
+            this.toolTabStrip2.TabStop = false;
+            this.toolTabStrip2.ThemeName = "Material";
+            // 
             // frmConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(967, 626);
-            this.Controls.Add(this.txtStatusConsole);
+            this.ClientSize = new System.Drawing.Size(1280, 796);
+            this.Controls.Add(this.dockConsole);
             this.Controls.Add(this.radStatusStrip1);
-            this.Controls.Add(this.toolBar);
             this.Controls.Add(this.mnuMainMenu);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(822, 681);
             this.Name = "frmConsole";
             // 
             // 
@@ -369,8 +585,28 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.cmbRpcUrls.ComboBoxElement)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.toolBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dockConsole)).EndInit();
+            this.dockConsole.ResumeLayout(false);
+            this.docWindowConsole.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.documentContainer1)).EndInit();
+            this.documentContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.documentTabStrip1)).EndInit();
+            this.documentTabStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStripCharts)).EndInit();
+            this.toolTabStripCharts.ResumeLayout(false);
+            this.toolWindowCharts.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.radSplitContainer1)).EndInit();
+            this.radSplitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitPanel1)).EndInit();
+            this.splitPanel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chartBotsOnline)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitPanel2)).EndInit();
+            this.splitPanel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chartHeroesQuesting)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStrip1)).EndInit();
+            this.toolTabStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.toolTabStrip2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -413,17 +649,29 @@
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem4;
         private Telerik.WinControls.UI.RadMenuItem mnuRunWalletInit;
         private Telerik.WinControls.UI.RadDesktopAlert desktopAlert;
-        private Telerik.WinControls.UI.RadCommandBar toolBar;
-        private Telerik.WinControls.UI.CommandBarRowElement commandBarRowElement1;
-        private Telerik.WinControls.UI.CommandBarStripElement commandBarStripElement1;
         private Telerik.WinControls.UI.RadMenuItem mnuStartStopMining;
-        private Telerik.WinControls.UI.RadLabelElement toolStripWalletsQuesting;
         private Telerik.WinControls.UI.CommandBarSeparator commandBarSeparator1;
         private Telerik.WinControls.UI.RadMenuItem mnuAbout;
         private Telerik.WinControls.UI.RadMenu mnuMainMenu;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private Telerik.WinControls.UI.RadLabelElement toolStripJewelAmount;
         private Telerik.WinControls.UI.CommandBarSeparator commandBarSeparator2;
+        private Telerik.WinControls.UI.Docking.RadDock dockConsole;
+        private Telerik.WinControls.UI.Docking.DocumentWindow docWindowConsole;
+        private Telerik.WinControls.UI.Docking.DocumentContainer documentContainer1;
+        private Telerik.WinControls.UI.Docking.DocumentTabStrip documentTabStrip1;
+        private Telerik.WinControls.UI.Docking.ToolWindow toolWindow1;
+        private Telerik.WinControls.UI.Docking.ToolTabStrip toolTabStrip1;
+        private Telerik.WinControls.UI.Docking.ToolWindow toolWindow2;
+        private Telerik.WinControls.UI.Docking.ToolWindow toolWindow3;
+        private Telerik.WinControls.UI.Docking.ToolTabStrip toolTabStripCharts;
+        private Telerik.WinControls.UI.Docking.ToolWindow toolWindowCharts;
+        private Telerik.WinControls.UI.Docking.ToolTabStrip toolTabStrip2;
+        private Telerik.WinControls.UI.RadSplitContainer radSplitContainer1;
+        private Telerik.WinControls.UI.SplitPanel splitPanel1;
+        private Telerik.WinControls.UI.SplitPanel splitPanel2;
+        private Telerik.WinControls.UI.RadChartView chartBotsOnline;
+        private Telerik.WinControls.UI.RadChartView chartHeroesQuesting;
     }
 }
 

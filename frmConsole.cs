@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -23,11 +25,18 @@ using DefiKindom_QuestRunner.Helpers;
 using DefiKindom_QuestRunner.Managers;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using Telerik.Charting;
 
 namespace DefiKindom_QuestRunner
 {
     public partial class frmConsole : RadForm
     {
+        #region Chart Internals
+
+        private List<WalletsOnQuestsMessageEvent> _walletsInQuestInstance = new List<WalletsOnQuestsMessageEvent>();
+
+        #endregion
+
         #region RadMenu Internals
 
         private RadMenuItem mnuAutoStartQuestingOnStartup;
@@ -50,11 +59,11 @@ namespace DefiKindom_QuestRunner
 
         private delegate void AddConsoleMsgDelegate(string text, bool isError = false);
         private delegate void UpdateWalletCountToolStripLabelDelegate(string text);
-        private delegate void SetWalletsOnQuestToolStripLabelDelegate(string text);
         private delegate void ShowDesktopAlertDelegate(NotificationEvent noticeEvent);
         private delegate void EnableUxControlsDelegate(bool enabled);
         private delegate void EnableDisableQuestStartMenusDelegate(bool startInstanceEnabled, bool stopInstanceEnabled);
         private delegate void HandleJewelProfitUxUpdatesDelegate(JewelInformation jewelInfo);
+        private delegate void HandleWalletsOnQuestsMessageEventDelegate(WalletsOnQuestsMessageEvent msgEvent);
 
         #endregion
 
@@ -78,6 +87,7 @@ namespace DefiKindom_QuestRunner
 
             LoadUXControls();
             HookControlEvents();
+            HookUpStatCharts();
         }
 
         #endregion
@@ -200,6 +210,9 @@ namespace DefiKindom_QuestRunner
                 return;
             }
 
+            mnuImportWalletDataFile.Enabled = false;
+            mnuImportExistingWallet.Enabled = false;
+            
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
 
@@ -338,8 +351,6 @@ namespace DefiKindom_QuestRunner
                 mnuMainMenu.SuspendLayout();
                 mnuMainMenu.Enabled = enabled;
                 mnuMainMenu.ResumeLayout(true);
-
-                toolBar.Enabled = enabled;
             }
         }
 
@@ -374,14 +385,6 @@ namespace DefiKindom_QuestRunner
                 Invoke(new UpdateWalletCountToolStripLabelDelegate(SetWalletCountToolStripLabel), text);
             else
                 toolStripWalletCount.Text = text;
-        }
-
-        void SetWalletsOnQuestToolStripLabel(string text)
-        {
-            if (InvokeRequired)
-                Invoke(new SetWalletsOnQuestToolStripLabelDelegate(SetWalletCountToolStripLabel), text);
-            else
-                toolStripWalletsQuesting.Text = text;
         }
 
         void ShowDesktopAlert(NotificationEvent noticeEvent)
@@ -465,7 +468,6 @@ namespace DefiKindom_QuestRunner
 
             eventHub.Subscribe<NotificationEvent>(this, ShowDesktopAlert);
 
-
             eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
             {
                 switch (msgEvent.OnQuestMessageEventType)
@@ -478,8 +480,9 @@ namespace DefiKindom_QuestRunner
                         AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Stopped Questing....");
                         break;
                 }
-            });
 
+                UpdateChartInformation(msgEvent);
+            });
 
             eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
             {
@@ -615,7 +618,6 @@ namespace DefiKindom_QuestRunner
                 }
 
 
-
                 //Do a FULL Index
                 EnableUxControls(false);
 
@@ -644,6 +646,8 @@ namespace DefiKindom_QuestRunner
             else
                 HandleQuestStartStopEnabled(true, false);
 
+            //Set initial chart
+            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(WalletManager.GetWallets().Count));
         }
 
         #endregion
@@ -654,6 +658,90 @@ namespace DefiKindom_QuestRunner
         {
             //Logger.Info(msg);
             await Task.Run(() => Logger.Info(msg));
+        }
+
+        #endregion
+
+        #region Chart Management
+
+        void UpdateChartInformation(WalletsOnQuestsMessageEvent msgEvent)
+        {
+            if(InvokeRequired)
+                Invoke(new HandleWalletsOnQuestsMessageEventDelegate(UpdateChartInformation), msgEvent);
+            else
+            {
+                try
+                {
+                    double? currentOfflineValue;
+                    double? currentOnlineValue;
+
+                    switch (msgEvent.OnQuestMessageEventType)
+                    {
+                        case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting:
+                            //instance starting. Take it from "Idle" to "online"
+                            currentOfflineValue =
+                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0) as double?;
+                            currentOfflineValue = currentOfflineValue - 1;
+
+                            //Get current "online
+                            currentOnlineValue =
+                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0) as double?;
+                            currentOnlineValue = currentOnlineValue + 1;
+
+                            //Set New Values
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOfflineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            break;
+
+                        case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStopping:
+                            currentOfflineValue =
+                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0) as double?;
+                            currentOfflineValue = currentOfflineValue + 1;
+
+                            //Get current "online
+                            currentOnlineValue =
+                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0) as double?;
+                            currentOnlineValue = currentOnlineValue - 1;
+
+                            //Set New Values
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOfflineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            break;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+        }
+
+        void HookUpStatCharts()
+        {
+            chartBotsOnline.AreaType = ChartAreaType.Pie;
+            var pieSeriesBotsOnline = new PieSeries();
+            pieSeriesBotsOnline.DataPoints.Add(new PieDataPoint(0, "Online"));
+            pieSeriesBotsOnline.DataPoints.Add(new PieDataPoint(0, "Offline"));
+            pieSeriesBotsOnline.ShowLabels = true;
+            pieSeriesBotsOnline.LabelMode = PieLabelModes.Horizontal;
+            chartBotsOnline.LegendTitle = "Bots Online";
+            chartBotsOnline.ShowLegend = true;
+            chartBotsOnline.Series.Add(pieSeriesBotsOnline);
+
+
+            chartHeroesQuesting.AreaType = ChartAreaType.Pie;
+            var pieSeriesQuestInstanceStatus = new PieSeries();
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting On Stamina"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Questing"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting To Cancel Quest"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting On Start Quest"));
+            pieSeriesQuestInstanceStatus.ShowLabels = true;
+            pieSeriesQuestInstanceStatus.LabelMode = PieLabelModes.Horizontal;
+            chartHeroesQuesting.LegendTitle = "Quest Instance Activity";
+            chartHeroesQuesting.ShowLegend = true;
+            chartHeroesQuesting.Series.Add(pieSeriesQuestInstanceStatus);
+            chartHeroesQuesting.Visible = false; //TOdO REMOVE ME
         }
 
         #endregion

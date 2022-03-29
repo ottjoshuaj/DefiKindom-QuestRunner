@@ -256,26 +256,6 @@ namespace DefiKindom_QuestRunner.Dialogs
             mnuReIInitSelectedWallets.Enabled = true;
         }
 
-        private void mnuStartWalletQuesting_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void mnuStopWalletQuesting_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void mnuStartAllQuestingInstances_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void mnuStopAllQuestInstances_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void mnuRecallHerosToSourceWallet_Click(object sender, EventArgs e)
         {
 

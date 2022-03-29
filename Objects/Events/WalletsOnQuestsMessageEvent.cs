@@ -6,9 +6,11 @@ namespace DefiKindom_QuestRunner
     {
         public enum OnQuestMessageEventTypes
         {
+            InstanceStarting,
             Questing,
             QuestingCanceled,
-            WaitingOnStamina
+            WaitingOnStamina,
+            InstanceStopping
         }
 
         public DfkWallet Wallet { get; }

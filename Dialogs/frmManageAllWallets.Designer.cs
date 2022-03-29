@@ -49,29 +49,23 @@
             this.gridWallets = new Telerik.WinControls.UI.RadGridView();
             this.radStatusStrip1 = new Telerik.WinControls.UI.RadStatusStrip();
             this.lblWalletStatusInfo = new Telerik.WinControls.UI.RadLabelElement();
-            this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
             this.radMenuItem1 = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSelectWalletAsPrimary = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSendOneAndOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSendHeroesToWallets = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuRecallHerosToSourceWallet = new Telerik.WinControls.UI.RadMenuItem();
             this.radMenuSeparatorItem1 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuSendJewelToSelectedWallet = new Telerik.WinControls.UI.RadMenuItem();
             this.radMenuSeparatorItem2 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuGenerateNewWallets = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuReIInitSelectedWallets = new Telerik.WinControls.UI.RadMenuItem();
-            this.radMenuItem9 = new Telerik.WinControls.UI.RadMenuItem();
-            this.mnuStartSelectedWalletQuesting = new Telerik.WinControls.UI.RadMenuItem();
-            this.mnuStopSelectedWalletQuesting = new Telerik.WinControls.UI.RadMenuItem();
-            this.radMenuSeparatorItem3 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
-            this.mnuStartAllQuestingInstances = new Telerik.WinControls.UI.RadMenuItem();
-            this.mnuStopAllQuestInstances = new Telerik.WinControls.UI.RadMenuItem();
-            this.mnuRecallHerosToSourceWallet = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
             this.SuspendLayout();
             // 
             // gridWallets
@@ -217,16 +211,6 @@
             this.lblWalletStatusInfo.Text = "Managing (0) Wallets";
             this.lblWalletStatusInfo.TextWrap = true;
             // 
-            // mnuMainMenu
-            // 
-            this.mnuMainMenu.Items.AddRange(new Telerik.WinControls.RadItem[] {
-            this.radMenuItem1,
-            this.radMenuItem9});
-            this.mnuMainMenu.Location = new System.Drawing.Point(0, 0);
-            this.mnuMainMenu.Name = "mnuMainMenu";
-            this.mnuMainMenu.Size = new System.Drawing.Size(888, 20);
-            this.mnuMainMenu.TabIndex = 0;
-            // 
             // radMenuItem1
             // 
             this.radMenuItem1.Items.AddRange(new Telerik.WinControls.RadItem[] {
@@ -267,6 +251,12 @@
             this.mnuSendHeroesToWallets.Text = "Send Heroes To Wallets";
             this.mnuSendHeroesToWallets.Click += new System.EventHandler(this.mnuSendHeroesToWallets_Click);
             // 
+            // mnuRecallHerosToSourceWallet
+            // 
+            this.mnuRecallHerosToSourceWallet.Name = "mnuRecallHerosToSourceWallet";
+            this.mnuRecallHerosToSourceWallet.Text = "Recall Heroes To Source Wallet";
+            this.mnuRecallHerosToSourceWallet.Click += new System.EventHandler(this.mnuRecallHerosToSourceWallet_Click);
+            // 
             // radMenuSeparatorItem1
             // 
             this.radMenuSeparatorItem1.Name = "radMenuSeparatorItem1";
@@ -297,58 +287,20 @@
             this.mnuReIInitSelectedWallets.Text = "Re-Init Selected Wallet(s)";
             this.mnuReIInitSelectedWallets.Click += new System.EventHandler(this.mnuReIInitSelectedWallets_Click);
             // 
-            // radMenuItem9
-            // 
-            this.radMenuItem9.Items.AddRange(new Telerik.WinControls.RadItem[] {
-            this.mnuStartSelectedWalletQuesting,
-            this.mnuStopSelectedWalletQuesting,
-            this.radMenuSeparatorItem3,
-            this.mnuStartAllQuestingInstances,
-            this.mnuStopAllQuestInstances});
-            this.radMenuItem9.Name = "radMenuItem9";
-            this.radMenuItem9.Text = "Quest Options";
-            // 
-            // mnuStartSelectedWalletQuesting
-            // 
-            this.mnuStartSelectedWalletQuesting.Name = "mnuStartSelectedWalletQuesting";
-            this.mnuStartSelectedWalletQuesting.Text = "Start Selected Wallet Questing";
-            this.mnuStartSelectedWalletQuesting.Click += new System.EventHandler(this.mnuStartWalletQuesting_Click);
-            // 
-            // mnuStopSelectedWalletQuesting
-            // 
-            this.mnuStopSelectedWalletQuesting.Name = "mnuStopSelectedWalletQuesting";
-            this.mnuStopSelectedWalletQuesting.Text = "Stop Selected Wallet Questing";
-            this.mnuStopSelectedWalletQuesting.Click += new System.EventHandler(this.mnuStopWalletQuesting_Click);
-            // 
-            // radMenuSeparatorItem3
-            // 
-            this.radMenuSeparatorItem3.Name = "radMenuSeparatorItem3";
-            this.radMenuSeparatorItem3.Text = "radMenuSeparatorItem3";
-            this.radMenuSeparatorItem3.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // mnuStartAllQuestingInstances
-            // 
-            this.mnuStartAllQuestingInstances.Name = "mnuStartAllQuestingInstances";
-            this.mnuStartAllQuestingInstances.Text = "Start Quest Instances (ones not active)";
-            this.mnuStartAllQuestingInstances.Click += new System.EventHandler(this.mnuStartAllQuestingInstances_Click);
-            // 
-            // mnuStopAllQuestInstances
-            // 
-            this.mnuStopAllQuestInstances.Name = "mnuStopAllQuestInstances";
-            this.mnuStopAllQuestInstances.Text = "Stop All Quest Instances";
-            this.mnuStopAllQuestInstances.Click += new System.EventHandler(this.mnuStopAllQuestInstances_Click);
-            // 
-            // mnuRecallHerosToSourceWallet
-            // 
-            this.mnuRecallHerosToSourceWallet.Name = "mnuRecallHerosToSourceWallet";
-            this.mnuRecallHerosToSourceWallet.Text = "Recall Heroes To Source Wallet";
-            this.mnuRecallHerosToSourceWallet.Click += new System.EventHandler(this.mnuRecallHerosToSourceWallet_Click);
-            // 
             // frmManageAllWallets
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(888, 586);
+            // 
+            // mnuMainMenu
+            // 
+            this.mnuMainMenu.Items.AddRange(new Telerik.WinControls.RadItem[] {
+            this.radMenuItem1});
+            this.mnuMainMenu.Location = new System.Drawing.Point(0, 0);
+            this.mnuMainMenu.Name = "mnuMainMenu";
+            this.mnuMainMenu.Size = new System.Drawing.Size(888, 20);
+            this.mnuMainMenu.TabIndex = 0;
             this.Controls.Add(this.gridWallets);
             this.Controls.Add(this.mnuMainMenu);
             this.Controls.Add(this.radStatusStrip1);
@@ -380,7 +332,6 @@
         private Telerik.WinControls.UI.RadGridView gridWallets;
         private Telerik.WinControls.UI.RadStatusStrip radStatusStrip1;
         private Telerik.WinControls.UI.RadLabelElement lblWalletStatusInfo;
-        private Telerik.WinControls.UI.RadMenu mnuMainMenu;
         private Telerik.WinControls.UI.RadMenuItem radMenuItem1;
         private Telerik.WinControls.UI.RadMenuItem mnuSelectWalletAsPrimary;
         private Telerik.WinControls.UI.RadMenuItem mnuSendOneAndOnboardToDfk;
@@ -391,12 +342,7 @@
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem2;
         private Telerik.WinControls.UI.RadMenuItem mnuGenerateNewWallets;
         private Telerik.WinControls.UI.RadMenuItem mnuReIInitSelectedWallets;
-        private Telerik.WinControls.UI.RadMenuItem radMenuItem9;
-        private Telerik.WinControls.UI.RadMenuItem mnuStartSelectedWalletQuesting;
-        private Telerik.WinControls.UI.RadMenuItem mnuStopSelectedWalletQuesting;
-        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem3;
-        private Telerik.WinControls.UI.RadMenuItem mnuStartAllQuestingInstances;
-        private Telerik.WinControls.UI.RadMenuItem mnuStopAllQuestInstances;
         private Telerik.WinControls.UI.RadMenuItem mnuRecallHerosToSourceWallet;
+        private Telerik.WinControls.UI.RadMenu mnuMainMenu;
     }
 }
