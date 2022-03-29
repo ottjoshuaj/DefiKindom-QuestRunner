@@ -240,7 +240,7 @@ namespace DefiKindom_QuestRunner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("600000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30000")]
         public int QuestInstanceMsInterval {
             get {
                 return ((int)(this["QuestInstanceMsInterval"]));
@@ -259,6 +259,18 @@ namespace DefiKindom_QuestRunner.Properties {
             }
             set {
                 this["MinimizeToTray"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://127.0.0.1:9195")]
+        public string ExecutorApi {
+            get {
+                return ((string)(this["ExecutorApi"]));
+            }
+            set {
+                this["ExecutorApi"] = value;
             }
         }
     }

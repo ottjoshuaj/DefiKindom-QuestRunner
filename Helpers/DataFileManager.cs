@@ -14,7 +14,6 @@ namespace DefiKindom_QuestRunner.Helpers
             Wallet
         }
 
- 
         public T LoadDataFile<T>(DataFileTypes type)
         {
             try
@@ -120,7 +119,7 @@ namespace DefiKindom_QuestRunner.Helpers
             return false;
         }
 
-        string Serialize<T>(T obj)
+        public string Serialize<T>(T obj)
         {
             try
             {
@@ -135,7 +134,7 @@ namespace DefiKindom_QuestRunner.Helpers
             }
         }
 
-        T Deserialize<T>(string json)
+        public T Deserialize<T>(string json)
         {
             try
             {

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
 using Telerik.WinControls;
 using Telerik.WinControls.UI;
 
@@ -127,6 +129,9 @@ namespace DefiKindom_QuestRunner
         private async void OnShown(object sender, EventArgs e)
         {
             await Task.Run(HandleWalletIndex);
+
+            //Make sure NodeJs server is running
+            await Task.Run(CheckForServer);
         }
 
         private void OnResize(object sender, EventArgs e)
@@ -182,6 +187,10 @@ namespace DefiKindom_QuestRunner
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
 
+
+
+            mnuExportWalletDataFile.Click += MnuExportWalletDataFileOnClick;
+
             /*
             mnuAutoStartQuestingOnStartup = new RadMenuItem();
             mnuAutoStartQuestingOnStartup.Text = @"Start Quest Engine on Startup";
@@ -215,10 +224,6 @@ namespace DefiKindom_QuestRunner
             
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
-
-            AddConsoleMessage("Refreshing all wallets...");
-
-            await WalletManager.Init();
 
             AddConsoleMessage("Loading Quest Instances for questing wallets...");
 
@@ -290,7 +295,7 @@ namespace DefiKindom_QuestRunner
                 CheckPathExists = true,
                 AddExtension = true,
                 DefaultExt = "dfk,json",
-                Filter = @"dfkqr files (*.dfk)|*.dfk|json files (*.json)|*.json",
+                Filter = @"json files (*.json)|*.json",
                 InitialDirectory = $"{Application.StartupPath}\\Data",
                 Title = @"Browse DFKQR+ Files"
             };
@@ -336,6 +341,36 @@ namespace DefiKindom_QuestRunner
             //StartQuestInstances();
 
             //mnuStartStopMining.Enabled = false;
+        }
+
+        private void MnuExportWalletDataFileOnClick(object sender, EventArgs e)
+        {
+            try
+            {
+                var exportWalletDataFile = new SaveFileDialog();
+                exportWalletDataFile.DefaultExt = "dfk,json";
+                exportWalletDataFile.Filter = @"json files (*.json)|*.json";
+                exportWalletDataFile.Title = @"Save Wallet Data File As";
+
+                var exportResponse = exportWalletDataFile.ShowDialog(this);
+                if (exportResponse == DialogResult.OK && !string.IsNullOrWhiteSpace(exportWalletDataFile.FileName))
+                {
+                    //Grab contents of current wallets data file
+                    WalletManager.SaveWallets();
+
+                    var dataManager = new DataFileManager();
+                    var wallets = dataManager.LoadDataFile<List<DfkWallet>>(DataFileManager.DataFileTypes.Wallet);
+                    var walletContents = dataManager.Serialize(wallets);
+
+                    File.WriteAllText(exportWalletDataFile.FileName, walletContents);
+
+                    RadMessageBox.Show(this, $"Wallet Data File Exported To:\r\n{exportWalletDataFile.FileName}", "Data File Export");
+                }
+            }
+            catch (Exception ex)
+            {
+                RadMessageBox.Show(this, $"Wallet Data File Export Error:\r\n{ex.Message}", "Data File Export Error");
+            }
         }
 
         #endregion
@@ -498,23 +533,6 @@ namespace DefiKindom_QuestRunner
 
         #endregion
 
-        #region Quest Instance Methods
-
-        void StartQuestInstances()
-        {
-            foreach (var wallet in WalletManager.GetWallets().Where(wallet => wallet.ReadyToWork))
-            {
-                QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining));
-            }
-        }
-
-        void StopQuestInstances()
-        {
-            QuestEngineManager.KillAllInstances();
-        }
-
-        #endregion
-
         #region Notification Icon Handler(s)
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -609,7 +627,7 @@ namespace DefiKindom_QuestRunner
 
                 //Do A quick Index OR a full index if its been longer 
                 var timeSinceLastIndex = DateTime.Now.Subtract(Settings.Default.LastWalletIndex);
-                if (timeSinceLastIndex.TotalMinutes > 60)
+                if (timeSinceLastIndex.TotalMinutes > 120)
                 {
                     Settings.Default.LastWalletIndex = DateTime.Now;
                     Settings.Default.Save();
@@ -678,34 +696,34 @@ namespace DefiKindom_QuestRunner
                     switch (msgEvent.OnQuestMessageEventType)
                     {
                         case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting:
-                            //instance starting. Take it from "Idle" to "online"
-                            currentOfflineValue =
-                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0) as double?;
-                            currentOfflineValue = currentOfflineValue - 1;
-
                             //Get current "online
                             currentOnlineValue =
-                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0) as double?;
+                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0);
                             currentOnlineValue = currentOnlineValue + 1;
 
+                            //instance starting. Take it from "Idle" to "online"
+                            currentOfflineValue =
+                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0);
+                            currentOfflineValue = currentOfflineValue - 1;
+
                             //Set New Values
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOfflineValue));
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(1, Convert.ToDouble(currentOfflineValue));
                             break;
 
                         case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStopping:
-                            currentOfflineValue =
-                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0) as double?;
-                            currentOfflineValue = currentOfflineValue + 1;
-
                             //Get current "online
                             currentOnlineValue =
-                                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0) as double?;
+                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0);
                             currentOnlineValue = currentOnlineValue - 1;
 
+                            currentOfflineValue =
+                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0);
+                            currentOfflineValue = currentOfflineValue + 1;
+
                             //Set New Values
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOfflineValue));
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOnlineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOfflineValue));
                             break;
                     }
 
@@ -742,6 +760,34 @@ namespace DefiKindom_QuestRunner
             chartHeroesQuesting.ShowLegend = true;
             chartHeroesQuesting.Series.Add(pieSeriesQuestInstanceStatus);
             chartHeroesQuesting.Visible = false; //TOdO REMOVE ME
+        }
+
+        #endregion
+
+        #region NodeJs Server Handlers
+
+        private async void CheckForServer()
+        {
+            try
+            {
+                var response =
+                    await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(QuickRequest.ApiRequestTypes
+                        .TestEndpoint);
+                if (!response.Success)
+                {
+                    RadMessageBox.Show(this, response.Error.ToString(),
+                        "Server Down!");
+
+                    Application.Exit();
+                }
+            }
+            catch (Exception ex)
+            {
+                RadMessageBox.Show(this, "DFKQR+ Server is down. Application can not run unless it is up!",
+                    "Server Down!");
+
+                Application.Exit();
+            }
         }
 
         #endregion

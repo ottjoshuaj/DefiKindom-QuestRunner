@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             Telerik.WinControls.UI.GridViewCheckBoxColumn gridViewCheckBoxColumn1 = new Telerik.WinControls.UI.GridViewCheckBoxColumn();
             Telerik.WinControls.UI.GridViewCheckBoxColumn gridViewCheckBoxColumn2 = new Telerik.WinControls.UI.GridViewCheckBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn1 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
@@ -50,16 +51,28 @@
             this.radStatusStrip1 = new Telerik.WinControls.UI.RadStatusStrip();
             this.lblWalletStatusInfo = new Telerik.WinControls.UI.RadLabelElement();
             this.radMenuItem1 = new Telerik.WinControls.UI.RadMenuItem();
-            this.mnuSelectWalletAsPrimary = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSendOneAndOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuOnboardToDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuSendHeroesToWallets = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuRecallHerosToSourceWallet = new Telerik.WinControls.UI.RadMenuItem();
             this.radMenuSeparatorItem1 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
-            this.mnuSendJewelToSelectedWallet = new Telerik.WinControls.UI.RadMenuItem();
-            this.radMenuSeparatorItem2 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuGenerateNewWallets = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem3 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuReIInitSelectedWallets = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuGridAction = new Telerik.WinControls.UI.RadContextMenu(this.components);
+            this.mnuGridActionSetAsPrimaryWallet = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem4 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuGridActionHeroOptions = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuGridActionSendHeroToWallet = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem6 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuGridActionRecallHeroToSource = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem7 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuGridActionRebuildHeroProfile = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem5 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuGridActionSendOneToWallet = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuGridActionOnBoardDfk = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem8 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuGridActionSendJewelTo = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).BeginInit();
@@ -71,7 +84,7 @@
             // gridWallets
             // 
             this.gridWallets.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridWallets.Location = new System.Drawing.Point(0, 20);
+            this.gridWallets.Location = new System.Drawing.Point(0, 37);
             // 
             // 
             // 
@@ -192,16 +205,17 @@
             this.gridWallets.ReadOnly = true;
             this.gridWallets.ShowCellErrors = false;
             this.gridWallets.ShowGroupPanel = false;
-            this.gridWallets.Size = new System.Drawing.Size(888, 540);
+            this.gridWallets.Size = new System.Drawing.Size(894, 525);
             this.gridWallets.TabIndex = 0;
+            this.gridWallets.ThemeName = "Material";
             // 
             // radStatusStrip1
             // 
             this.radStatusStrip1.Items.AddRange(new Telerik.WinControls.RadItem[] {
             this.lblWalletStatusInfo});
-            this.radStatusStrip1.Location = new System.Drawing.Point(0, 560);
+            this.radStatusStrip1.Location = new System.Drawing.Point(0, 562);
             this.radStatusStrip1.Name = "radStatusStrip1";
-            this.radStatusStrip1.Size = new System.Drawing.Size(888, 26);
+            this.radStatusStrip1.Size = new System.Drawing.Size(894, 24);
             this.radStatusStrip1.TabIndex = 2;
             // 
             // lblWalletStatusInfo
@@ -214,41 +228,33 @@
             // radMenuItem1
             // 
             this.radMenuItem1.Items.AddRange(new Telerik.WinControls.RadItem[] {
-            this.mnuSelectWalletAsPrimary,
             this.mnuSendOneAndOnboardToDfk,
             this.mnuOnboardToDfk,
             this.mnuSendHeroesToWallets,
             this.mnuRecallHerosToSourceWallet,
             this.radMenuSeparatorItem1,
-            this.mnuSendJewelToSelectedWallet,
-            this.radMenuSeparatorItem2,
             this.mnuGenerateNewWallets,
+            this.radMenuSeparatorItem3,
             this.mnuReIInitSelectedWallets});
             this.radMenuItem1.Name = "radMenuItem1";
             this.radMenuItem1.Text = "Wallet Options";
             // 
-            // mnuSelectWalletAsPrimary
-            // 
-            this.mnuSelectWalletAsPrimary.Name = "mnuSelectWalletAsPrimary";
-            this.mnuSelectWalletAsPrimary.Text = "Set Select Wallet As Primary";
-            this.mnuSelectWalletAsPrimary.Click += new System.EventHandler(this.mnuSelectWalletAsPrimary_Click);
-            // 
             // mnuSendOneAndOnboardToDfk
             // 
             this.mnuSendOneAndOnboardToDfk.Name = "mnuSendOneAndOnboardToDfk";
-            this.mnuSendOneAndOnboardToDfk.Text = "Send ONE && Onboard To DFK";
+            this.mnuSendOneAndOnboardToDfk.Text = "Send ONE && Onboard To DFK (If NOT already)";
             this.mnuSendOneAndOnboardToDfk.Click += new System.EventHandler(this.mnuSendOneAndOnboardToDfk_Click);
             // 
             // mnuOnboardToDfk
             // 
             this.mnuOnboardToDfk.Name = "mnuOnboardToDfk";
-            this.mnuOnboardToDfk.Text = "Onboard to DFK";
+            this.mnuOnboardToDfk.Text = "Onboard Wallets To DFK (If NOT already)";
             this.mnuOnboardToDfk.Click += new System.EventHandler(this.mnuOnboardToDfk_Click);
             // 
             // mnuSendHeroesToWallets
             // 
             this.mnuSendHeroesToWallets.Name = "mnuSendHeroesToWallets";
-            this.mnuSendHeroesToWallets.Text = "Send Heroes To Wallets";
+            this.mnuSendHeroesToWallets.Text = "Send Heroes To Wallets (Ones w/o Heroes)";
             this.mnuSendHeroesToWallets.Click += new System.EventHandler(this.mnuSendHeroesToWallets_Click);
             // 
             // mnuRecallHerosToSourceWallet
@@ -263,23 +269,17 @@
             this.radMenuSeparatorItem1.Text = "radMenuSeparatorItem1";
             this.radMenuSeparatorItem1.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // mnuSendJewelToSelectedWallet
-            // 
-            this.mnuSendJewelToSelectedWallet.Name = "mnuSendJewelToSelectedWallet";
-            this.mnuSendJewelToSelectedWallet.Text = "Send Jewel To Selected Wallet";
-            this.mnuSendJewelToSelectedWallet.Click += new System.EventHandler(this.mnuSendJewelToSelectedWallet_Click);
-            // 
-            // radMenuSeparatorItem2
-            // 
-            this.radMenuSeparatorItem2.Name = "radMenuSeparatorItem2";
-            this.radMenuSeparatorItem2.Text = "radMenuSeparatorItem2";
-            this.radMenuSeparatorItem2.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // mnuGenerateNewWallets
             // 
             this.mnuGenerateNewWallets.Name = "mnuGenerateNewWallets";
             this.mnuGenerateNewWallets.Text = "Generate New Wallets";
             this.mnuGenerateNewWallets.Click += new System.EventHandler(this.mnuGenerateNewWallets_Click);
+            // 
+            // radMenuSeparatorItem3
+            // 
+            this.radMenuSeparatorItem3.Name = "radMenuSeparatorItem3";
+            this.radMenuSeparatorItem3.Text = "radMenuSeparatorItem3";
+            this.radMenuSeparatorItem3.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // mnuReIInitSelectedWallets
             // 
@@ -287,11 +287,102 @@
             this.mnuReIInitSelectedWallets.Text = "Re-Init Selected Wallet(s)";
             this.mnuReIInitSelectedWallets.Click += new System.EventHandler(this.mnuReIInitSelectedWallets_Click);
             // 
+            // mnuGridAction
+            // 
+            this.mnuGridAction.Items.AddRange(new Telerik.WinControls.RadItem[] {
+            this.mnuGridActionSetAsPrimaryWallet,
+            this.radMenuSeparatorItem4,
+            this.mnuGridActionHeroOptions,
+            this.radMenuSeparatorItem5,
+            this.mnuGridActionSendOneToWallet,
+            this.mnuGridActionOnBoardDfk,
+            this.radMenuSeparatorItem8,
+            this.mnuGridActionSendJewelTo});
+            this.mnuGridAction.ThemeName = "Material";
+            // 
+            // mnuGridActionSetAsPrimaryWallet
+            // 
+            this.mnuGridActionSetAsPrimaryWallet.AccessibleDescription = "mnuGridActionSetAsPrimaryWallet";
+            this.mnuGridActionSetAsPrimaryWallet.Name = "mnuGridActionSetAsPrimaryWallet";
+            this.mnuGridActionSetAsPrimaryWallet.Text = "Set as source/primary wallet";
+            // 
+            // radMenuSeparatorItem4
+            // 
+            this.radMenuSeparatorItem4.Name = "radMenuSeparatorItem4";
+            this.radMenuSeparatorItem4.Text = "radMenuSeparatorItem4";
+            this.radMenuSeparatorItem4.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuGridActionHeroOptions
+            // 
+            this.mnuGridActionHeroOptions.AccessibleDescription = "mnuGridActionHeroOptions";
+            this.mnuGridActionHeroOptions.Items.AddRange(new Telerik.WinControls.RadItem[] {
+            this.mnuGridActionSendHeroToWallet,
+            this.radMenuSeparatorItem6,
+            this.mnuGridActionRecallHeroToSource,
+            this.radMenuSeparatorItem7,
+            this.mnuGridActionRebuildHeroProfile});
+            this.mnuGridActionHeroOptions.Name = "mnuGridActionHeroOptions";
+            this.mnuGridActionHeroOptions.Text = "Hero Options";
+            // 
+            // mnuGridActionSendHeroToWallet
+            // 
+            this.mnuGridActionSendHeroToWallet.Name = "mnuGridActionSendHeroToWallet";
+            this.mnuGridActionSendHeroToWallet.Text = "Send hero to wallet";
+            // 
+            // radMenuSeparatorItem6
+            // 
+            this.radMenuSeparatorItem6.Name = "radMenuSeparatorItem6";
+            this.radMenuSeparatorItem6.Text = "radMenuSeparatorItem6";
+            this.radMenuSeparatorItem6.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuGridActionRecallHeroToSource
+            // 
+            this.mnuGridActionRecallHeroToSource.Name = "mnuGridActionRecallHeroToSource";
+            this.mnuGridActionRecallHeroToSource.Text = "Re-call hero to source/primary wallet";
+            // 
+            // radMenuSeparatorItem7
+            // 
+            this.radMenuSeparatorItem7.Name = "radMenuSeparatorItem7";
+            this.radMenuSeparatorItem7.Text = "radMenuSeparatorItem7";
+            this.radMenuSeparatorItem7.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuGridActionRebuildHeroProfile
+            // 
+            this.mnuGridActionRebuildHeroProfile.Name = "mnuGridActionRebuildHeroProfile";
+            this.mnuGridActionRebuildHeroProfile.Text = "Rebuild Hero Profile";
+            // 
+            // radMenuSeparatorItem5
+            // 
+            this.radMenuSeparatorItem5.Name = "radMenuSeparatorItem5";
+            this.radMenuSeparatorItem5.Text = "radMenuSeparatorItem5";
+            this.radMenuSeparatorItem5.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuGridActionSendOneToWallet
+            // 
+            this.mnuGridActionSendOneToWallet.Name = "mnuGridActionSendOneToWallet";
+            this.mnuGridActionSendOneToWallet.Text = "Send ONE to wallet";
+            // 
+            // mnuGridActionOnBoardDfk
+            // 
+            this.mnuGridActionOnBoardDfk.Name = "mnuGridActionOnBoardDfk";
+            this.mnuGridActionOnBoardDfk.Text = "Onboard wallet to DFK";
+            // 
+            // radMenuSeparatorItem8
+            // 
+            this.radMenuSeparatorItem8.Name = "radMenuSeparatorItem8";
+            this.radMenuSeparatorItem8.Text = "radMenuSeparatorItem8";
+            this.radMenuSeparatorItem8.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuGridActionSendJewelTo
+            // 
+            this.mnuGridActionSendJewelTo.Name = "mnuGridActionSendJewelTo";
+            this.mnuGridActionSendJewelTo.Text = "Send jewel to wallet";
+            // 
             // frmManageAllWallets
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(888, 586);
+            this.ClientSize = new System.Drawing.Size(894, 586);
             // 
             // mnuMainMenu
             // 
@@ -299,8 +390,9 @@
             this.radMenuItem1});
             this.mnuMainMenu.Location = new System.Drawing.Point(0, 0);
             this.mnuMainMenu.Name = "mnuMainMenu";
-            this.mnuMainMenu.Size = new System.Drawing.Size(888, 20);
+            this.mnuMainMenu.Size = new System.Drawing.Size(894, 37);
             this.mnuMainMenu.TabIndex = 0;
+            this.mnuMainMenu.ThemeName = "Material";
             this.Controls.Add(this.gridWallets);
             this.Controls.Add(this.mnuMainMenu);
             this.Controls.Add(this.radStatusStrip1);
@@ -313,6 +405,7 @@
             this.RootElement.ApplyShapeToControl = true;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Manage Your Wallets/Accounts";
+            this.ThemeName = "Material";
             this.Load += new System.EventHandler(this.frmManageAllWallets_Load);
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).EndInit();
@@ -333,16 +426,28 @@
         private Telerik.WinControls.UI.RadStatusStrip radStatusStrip1;
         private Telerik.WinControls.UI.RadLabelElement lblWalletStatusInfo;
         private Telerik.WinControls.UI.RadMenuItem radMenuItem1;
-        private Telerik.WinControls.UI.RadMenuItem mnuSelectWalletAsPrimary;
         private Telerik.WinControls.UI.RadMenuItem mnuSendOneAndOnboardToDfk;
         private Telerik.WinControls.UI.RadMenuItem mnuOnboardToDfk;
         private Telerik.WinControls.UI.RadMenuItem mnuSendHeroesToWallets;
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem1;
-        private Telerik.WinControls.UI.RadMenuItem mnuSendJewelToSelectedWallet;
-        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem2;
         private Telerik.WinControls.UI.RadMenuItem mnuGenerateNewWallets;
         private Telerik.WinControls.UI.RadMenuItem mnuReIInitSelectedWallets;
         private Telerik.WinControls.UI.RadMenuItem mnuRecallHerosToSourceWallet;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem3;
+        private Telerik.WinControls.UI.RadContextMenu mnuGridAction;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionSetAsPrimaryWallet;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem4;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionHeroOptions;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionSendHeroToWallet;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem6;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionRecallHeroToSource;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem7;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionRebuildHeroProfile;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem5;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionSendJewelTo;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionSendOneToWallet;
+        private Telerik.WinControls.UI.RadMenuItem mnuGridActionOnBoardDfk;
+        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem8;
         private Telerik.WinControls.UI.RadMenu mnuMainMenu;
     }
 }

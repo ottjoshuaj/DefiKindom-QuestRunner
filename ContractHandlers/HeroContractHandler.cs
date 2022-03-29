@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Numerics;
-
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Objects;
 using Nethereum.ABI.FunctionEncoding;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
@@ -169,10 +171,29 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
         }
 
 
-        public async Task<bool> SendHeroToWallet(Account source, Account destination, int heroId)
+        public async Task<bool> SendHeroToWallet(DfkWallet wallet, Account destination, int heroId)
         {
             try
             {
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    QuickRequest.ApiRequestTypes.HeroTransfer,
+                    new TransferHeroRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = wallet.Name,
+                            Address = wallet.Address,
+                            PrivateKey = wallet.PrivateKey,
+                            PublicKey = wallet.PublicKey,
+                            MnemonicPhrase = wallet.MnemonicPhrase
+                        },
+                        DestinationAddress = destination.Address, HeroId = heroId
+                    });
+
+                if (response != null)
+                    return response.Success;
+
+                /*
                 var web3 = new Web3(source, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
@@ -191,6 +212,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 transaction.Wait();
 
                 return true;
+                */
             }
             catch (Exception ex)
             {

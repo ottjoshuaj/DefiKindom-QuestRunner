@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using System.Web.Hosting;
-using NBitcoin;
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+
 using Nethereum.HdWallet;
 using Nethereum.Web3.Accounts;
 using PubSub;
@@ -259,6 +260,45 @@ namespace DefiKindom_QuestRunner.Managers
             }
         }
 
+        public static async void ReloadWalletHeroData(string address)
+        {
+            var wallet = GetWallets().FirstOrDefault(x => x.Address.Trim().ToUpper() == address.Trim().ToUpper());
+            if (wallet != null)
+            {
+                var walletHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
+                wallet.AvailableHeroes = walletHeroes;
+
+                if (wallet.HeroProfiles == null)
+                    wallet.HeroProfiles = new List<HeroProfile>();
+                else
+                    wallet.HeroProfiles.Clear();
+
+                //Pull Profile Details for each hero
+                foreach (var heroId in wallet.AvailableHeroes)
+                {
+                    var heroDetails = await new HeroContractHandler().GetHeroDetails(wallet.WalletAccount, heroId);
+                    if (heroDetails == null) continue;
+
+                    if (wallet.HeroProfiles.Any(x => x.Id == heroDetails.Id)) continue;
+
+                    wallet.HeroProfiles.Add(heroDetails);
+                }
+
+                //Always make sure the FIRST index of heroes is who is assigned to the wallet
+                if (wallet.AvailableHeroes == null)
+                    wallet.AssignedHero = 0;
+                else if(wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                    wallet.AssignedHero = 0;
+                else 
+                    wallet.AssignedHero = walletHeroes[0];
+
+                //Get current stamina info for the hero
+                wallet.AssignedHeroStamina =
+                    await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount,
+                        wallet.AssignedHero);
+            }
+        }
+
         public static async Task<DfkWallet> InitWallet(DfkWallet wallet, bool isQuickInit = false)
         {
             //Set Internal Account
@@ -276,10 +316,17 @@ namespace DefiKindom_QuestRunner.Managers
                 var wishWellQuestInfo =
                     await new QuestContractHandler().GetQuestType(Wallets.FirstOrDefault()?.WalletAccount, QuestEngine.QuestTypes.WishingWell);
 
-                Settings.Default.MiningQuestTypeId = mineQuestInfo.TypeId;
-                Settings.Default.FishingQuestTypeId = fishQuestInfo.TypeId;
-                Settings.Default.ForagingQuestTypeId = forageQuestInfo.TypeId;
-                Settings.Default.WishingWellQuestTypeId = wishWellQuestInfo.TypeId;
+                if(mineQuestInfo != null)
+                    Settings.Default.MiningQuestTypeId = mineQuestInfo.TypeId;
+
+                if (fishQuestInfo != null)
+                    Settings.Default.FishingQuestTypeId = fishQuestInfo.TypeId;
+
+                if (forageQuestInfo != null)
+                    Settings.Default.ForagingQuestTypeId = forageQuestInfo.TypeId;
+
+                if (wishWellQuestInfo != null)
+                    Settings.Default.WishingWellQuestTypeId = wishWellQuestInfo.TypeId;
 
                 Settings.Default.Save();
 
@@ -305,22 +352,32 @@ namespace DefiKindom_QuestRunner.Managers
                 else
                     wallet.HeroProfiles.Clear();
 
-                foreach (var heroId in wallet.AvailableHeroes)
+                if (wallet.AvailableHeroes != null)
                 {
-                    var heroDetails = await new HeroContractHandler().GetHeroDetails(wallet.WalletAccount, heroId);
-                    if (heroDetails == null) continue;
+                    foreach (var heroId in wallet.AvailableHeroes)
+                    {
+                        var heroDetails = await new HeroContractHandler().GetHeroDetails(wallet.WalletAccount, heroId);
+                        if (heroDetails == null) continue;
 
-                    if (wallet.HeroProfiles.Any(x => x.Id == heroDetails.Id)) continue;
+                        if (wallet.HeroProfiles.Any(x => x.Id == heroDetails.Id)) continue;
 
-                    wallet.HeroProfiles.Add(heroDetails);
+                        wallet.HeroProfiles.Add(heroDetails);
 
-                    await eventHub.PublishAsync(new MessageEvent
-                        { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => [HeroId:{heroId}] => Profile Pulled..." });
+                        await eventHub.PublishAsync(new MessageEvent
+                            { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => [HeroId:{heroId}] => Profile Pulled..." });
+                    }
                 }
-
 
                 await eventHub.PublishAsync(new MessageEvent
                     { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => Hero list built" });
+
+                //Find out if the wallet still has an assigned hero
+                if (wallet.AvailableHeroes == null)
+                    wallet.AssignedHero = 0;
+                else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                    wallet.AssignedHero = 0;
+                else
+                    wallet.AssignedHero = walletHeroes[0];
 
                 //Get Hero status on startup
                 if (wallet.AssignedHero > 0)
@@ -457,21 +514,14 @@ namespace DefiKindom_QuestRunner.Managers
             }
         }
 
-        public static DfkWallet CreateWallet(string name)
+        public static async Task<List<DfkWallet>> CreateWallets(int amount, string namePrefix)
         {
-            var newDfkWallet = new DfkWallet();
-            var newWallet = new Wallet(new Mnemonic(Wordlist.English, WordCount.Twelve).ToString(), "");
+            var newWallets = await new QuickRequest().GetDfkApiResponse<List<DfkWallet>>(
+                QuickRequest.ApiRequestTypes.WalletCreate,
+                new WalletCreateRequest
+                    {CreateAmount = amount, NamePrefix = namePrefix});
 
-            newDfkWallet.Name = name;
-            newDfkWallet.Address = newWallet.GetEthereumKey(0).GetPublicAddress();
-            newDfkWallet.PrivateKey = newWallet.GetEthereumKey(0).GetPrivateKey();
-            newDfkWallet.MnemonicPhrase = string.Join(" ", newWallet.Words);
-
-            //Lets test 
-            var newWalletLoaded = new Account(newDfkWallet.PrivateKey);
-            newDfkWallet.PublicKey = newWalletLoaded.PublicKey;
-
-            return newDfkWallet;
+            return newWallets;
         }
 
         public static Wallet ImportWallet(string words)

@@ -42,6 +42,10 @@ namespace DefiKindom_QuestRunner.Dialogs
             //Instance Intervals
             txtJewelInstanceInterval.Value = Settings.Default.JewelInstanceMsInterval;
             txtQuestInterval.Value = Settings.Default.QuestInstanceMsInterval;
+
+
+            //Local/Hosted NodeJS Server
+            txtNodeJsServerEndpoint.Text = Settings.Default.ExecutorApi;
         }
 
         #endregion
@@ -50,6 +54,9 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         private void btnSavePreferences_Click(object sender, EventArgs e)
         {
+            //Local/Hosted NodeJS Server
+            Settings.Default.ExecutorApi = txtNodeJsServerEndpoint.Text;
+
             //App Behavior Settings
             Settings.Default.MinimizeToTray = chkHideToTrayOnMinimize.Checked;
 
@@ -59,10 +66,12 @@ namespace DefiKindom_QuestRunner.Dialogs
 
             
             //RPC Settings
-            Settings.Default.CurrentRpcUrl = cmbRPCSettings.DropDownListElement.SelectedValue.ToString();
+            Settings.Default.CurrentRpcUrl = cmbRPCSettings.DropDownListElement.Text;
             Settings.Default.CurrentRpcShard = cmbRpcChain.DropDownListElement.SelectedValue.ToString();
 
             Settings.Default.Save();
+
+            Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

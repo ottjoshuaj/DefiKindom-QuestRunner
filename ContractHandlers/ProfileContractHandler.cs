@@ -7,17 +7,36 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 using DefiKindom_QuestRunner.Abis.Objects;
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
     internal class ProfileContractHandler
     {
-        public async Task<bool> CreateProfile(Account account, string profileName)
+        public async Task<bool> CreateProfile(DfkWallet wallet, string profileName)
         {
             try
             {
-                //Juice
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    QuickRequest.ApiRequestTypes.ProfileCreate, new DfkProfileCreateRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = wallet.Name,
+                            Address = wallet.Address,
+                            PrivateKey = wallet.PrivateKey,
+                            PublicKey = wallet.PublicKey,
+                            MnemonicPhrase = wallet.MnemonicPhrase
+                        }
+                    });
+
+                if(response != null)
+                    return response.Success;
+
+                /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
@@ -37,6 +56,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 transaction.Wait();
 
                 return true;
+                */
             }
             catch (Exception ex)
             {

@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace DefiKindom_QuestRunner.Objects
 {
     
-    internal class DfkWallet
+    public class DfkWallet
     {
         [JsonProperty("isPrimarySourceWallet")]
         public bool IsPrimarySourceWallet { get; set; }
@@ -84,10 +84,18 @@ namespace DefiKindom_QuestRunner.Objects
 
         //If no quest status then we know we're not questing! //TOdO: FIX THIS, BASED ON ASSIGNED HERO DETAILS
         [JsonIgnore]
-        public bool IsQuesting =>
-            AssignedHeroQuestStatus != null &&
-            (AssignedHeroQuestStatus.ContractAddress == "0x0000000000000000000000000000000000000000" ||
-             AssignedHeroQuestStatus.Status == 0);
+        public bool IsQuesting
+        {
+            get
+            {
+                if (AssignedHeroQuestStatus == null) return false;
+                if (AssignedHeroQuestStatus.ContractAddress == "0x0000000000000000000000000000000000000000")
+                    return false;
+
+                return true;
+            }
+        }
+
 
         [JsonIgnore]
         public bool ReadyToWork

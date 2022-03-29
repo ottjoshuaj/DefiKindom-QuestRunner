@@ -2,7 +2,7 @@
 
 namespace DefiKindom_QuestRunner
 {
-    internal class HeroProfile
+    public class HeroProfile
     {
         public HeroProfile()
         {
@@ -32,7 +32,7 @@ namespace DefiKindom_QuestRunner
         public HeroStateProfessions Professions { get; set; }
     }
 
-    internal class HeroSummonInfo
+    public class HeroSummonInfo
     {
         public DateTime? SummonedTime { get; set; }
         public DateTime? NextSummonTime { get; set; }
@@ -42,7 +42,7 @@ namespace DefiKindom_QuestRunner
         public int MaxSummons { get; set; }
     }
 
-    internal class HeroInfo
+    public class HeroInfo
     {
         public int StatGenes { get; set; }
         public int VisualGenes { get; set; }
@@ -56,7 +56,7 @@ namespace DefiKindom_QuestRunner
         public int SubClass { get; set; }
     }
 
-    internal class HeroState
+    public class HeroState
     {
         public DateTime? StaminaFullAt { get; set; }
         public DateTime? HPFullAt { get; set; }
@@ -68,7 +68,7 @@ namespace DefiKindom_QuestRunner
         public int Status { get; set; }
     }
 
-    internal class HeroStats
+    public class HeroStats
     {
         public int Strength { get; set; }
         public int Intelligence { get; set; }
@@ -83,7 +83,7 @@ namespace DefiKindom_QuestRunner
         public int Stamina { get; set; }
     }
 
-    internal class HeroStateGrowth
+    public class HeroStateGrowth
     {
         public int Strength { get; set; }
         public int Intelligence { get; set; }
@@ -102,7 +102,7 @@ namespace DefiKindom_QuestRunner
         public int MPLg { get; set; }
     }
 
-    internal class HeroStateProfessions
+    public class HeroStateProfessions
     {
         public int Mining { get; set; }
 

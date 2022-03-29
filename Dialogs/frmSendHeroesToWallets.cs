@@ -47,7 +47,7 @@ namespace DefiKindom_QuestRunner.Dialogs
                     if (nextWalletWithOutHero != null)
                     {
                         var heroSentToWalletResult =
-                            await new HeroContractHandler().SendHeroToWallet(sourceWallet.WalletAccount, nextWalletWithOutHero.WalletAccount,
+                            await new HeroContractHandler().SendHeroToWallet(sourceWallet, nextWalletWithOutHero.WalletAccount,
                                 heroToSend);
                         if (heroSentToWalletResult)
                         {

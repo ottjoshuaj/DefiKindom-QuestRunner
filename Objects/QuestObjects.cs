@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace DefiKindom_QuestRunner
 {
-    internal class DkHeroQuestStatus
+    public class DkHeroQuestStatus
     {
         public DkHeroQuestStatus()
         {
@@ -27,12 +27,12 @@ namespace DefiKindom_QuestRunner
     }
 
 
-    internal class QuestAddressToType
+    public class QuestAddressToType
     {
         public int TypeId { get; set; }
     }
 
-    internal class DfkHeroInformation
+    public class DfkHeroInformation
     {
 
     }

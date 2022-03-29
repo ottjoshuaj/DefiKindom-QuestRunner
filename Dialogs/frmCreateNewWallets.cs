@@ -29,37 +29,36 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         }
 
-        private void btnGenerateWallets_Click(object sender, EventArgs e)
+        private async void btnGenerateWallets_Click(object sender, EventArgs e)
         {
             Enabled = false;
 
             try
             {
-                var currentWalletCount = WalletManager.GetWallets().Count + 1;
                 var walletsGenerated = 0;
-
-                for (var i = 0; i < txtNewWalletAmount.Value; i++)
+                var newWallets = await WalletManager.CreateWallets(Convert.ToInt32(txtNewWalletAmount.Value), GenerateWord(5));
+                if (newWallets != null)
                 {
-                    var newWallet = WalletManager.CreateWallet($"{GenerateWord(6)} {currentWalletCount}");
-                    if (newWallet != null)
+                    foreach (var wallet in newWallets)
                     {
-                        WalletManager.AddWallet(newWallet);
-
                         walletsGenerated++;
+
+                        WalletManager.AddWallet(wallet);
                     }
                 }
+  
 
                 WalletManager.SaveWallets();
 
                 RadMessageBox.Show(this, $@"Created {walletsGenerated} new random wallets and added them to the manager.", @"Wallets Generated");
 
-                eventHub.Publish(new WalletsGeneratedEvent { TotalWallets = WalletManager.GetWallets().Count });
+                await eventHub.PublishAsync(new WalletsGeneratedEvent { TotalWallets = WalletManager.GetWallets().Count });
 
                 Close();
             }
             catch(Exception ex)
             {
-                eventHub.Publish(new NotificationEvent { IsError = true, Content = ex.Message });
+                await eventHub.PublishAsync(new NotificationEvent { IsError = true, Content = ex.Message });
             }
 
             Enabled = true;

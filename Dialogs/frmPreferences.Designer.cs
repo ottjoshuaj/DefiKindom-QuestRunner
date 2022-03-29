@@ -47,6 +47,8 @@
             this.chkHideToTrayOnMinimize = new Telerik.WinControls.UI.RadCheckBox();
             this.tabBlockChainSettings = new Telerik.WinControls.UI.RadPageViewPage();
             this.btnCancel = new Telerik.WinControls.UI.RadButton();
+            this.radLabel5 = new Telerik.WinControls.UI.RadLabel();
+            this.txtNodeJsServerEndpoint = new Telerik.WinControls.UI.RadTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.radGroupBox1)).BeginInit();
             this.radGroupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel2)).BeginInit();
@@ -68,6 +70,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.chkHideToTrayOnMinimize)).BeginInit();
             this.tabBlockChainSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnCancel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             this.SuspendLayout();
             // 
@@ -129,7 +133,7 @@
             this.btnSavePreferences.Name = "btnSavePreferences";
             this.btnSavePreferences.Size = new System.Drawing.Size(125, 36);
             this.btnSavePreferences.TabIndex = 1;
-            this.btnSavePreferences.Text = "Save";
+            this.btnSavePreferences.Text = "Save && Close";
             this.btnSavePreferences.ThemeName = "Material";
             this.btnSavePreferences.Click += new System.EventHandler(this.btnSavePreferences_Click);
             // 
@@ -158,6 +162,8 @@
             // radGroupBox3
             // 
             this.radGroupBox3.AccessibleRole = System.Windows.Forms.AccessibleRole.Grouping;
+            this.radGroupBox3.Controls.Add(this.txtNodeJsServerEndpoint);
+            this.radGroupBox3.Controls.Add(this.radLabel5);
             this.radGroupBox3.Controls.Add(this.radLabel4);
             this.radGroupBox3.Controls.Add(this.txtQuestInterval);
             this.radGroupBox3.Controls.Add(this.radLabel3);
@@ -285,6 +291,23 @@
             this.btnCancel.ThemeName = "Material";
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
+            // radLabel5
+            // 
+            this.radLabel5.Location = new System.Drawing.Point(14, 236);
+            this.radLabel5.Name = "radLabel5";
+            this.radLabel5.Size = new System.Drawing.Size(235, 21);
+            this.radLabel5.TabIndex = 4;
+            this.radLabel5.Text = "DFKQR+ NodeJS Contract Endpoint";
+            this.radLabel5.ThemeName = "Material";
+            // 
+            // txtNodeJsServerEndpoint
+            // 
+            this.txtNodeJsServerEndpoint.Location = new System.Drawing.Point(14, 263);
+            this.txtNodeJsServerEndpoint.Name = "txtNodeJsServerEndpoint";
+            this.txtNodeJsServerEndpoint.Size = new System.Drawing.Size(518, 36);
+            this.txtNodeJsServerEndpoint.TabIndex = 5;
+            this.txtNodeJsServerEndpoint.ThemeName = "Material";
+            // 
             // frmPreferences
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -329,6 +352,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.chkHideToTrayOnMinimize)).EndInit();
             this.tabBlockChainSettings.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.btnCancel)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
             this.ResumeLayout(false);
 
@@ -354,5 +379,7 @@
         private Telerik.WinControls.UI.RadSpinEditor txtJewelInstanceInterval;
         private Telerik.WinControls.UI.RadGroupBox radGroupBox2;
         private Telerik.WinControls.UI.RadCheckBox chkHideToTrayOnMinimize;
+        private Telerik.WinControls.UI.RadTextBox txtNodeJsServerEndpoint;
+        private Telerik.WinControls.UI.RadLabel radLabel5;
     }
 }

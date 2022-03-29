@@ -63,10 +63,13 @@
       <Value Profile="(Default)">3000</Value>
     </Setting>
     <Setting Name="QuestInstanceMsInterval" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">600000</Value>
+      <Value Profile="(Default)">30000</Value>
     </Setting>
     <Setting Name="MinimizeToTray" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ExecutorApi" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://127.0.0.1:9195</Value>
     </Setting>
   </Settings>
 </SettingsFile>

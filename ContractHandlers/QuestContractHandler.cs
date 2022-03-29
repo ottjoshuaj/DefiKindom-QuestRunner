@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
-
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
 using Nethereum.ABI.FunctionEncoding;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 using DefiKindom_QuestRunner.EngineManagers.Engines;
+using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using NBitcoin;
+using Nethereum.Contracts;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
@@ -90,10 +94,28 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return -1;
         }
 
-        public async Task<bool> CancelQuesting(Account account, int heroId)
+        public async Task<bool> CancelQuesting(DfkWallet wallet, int heroId)
         {
             try
             {
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    QuickRequest.ApiRequestTypes.StartQuest,
+                    new QuestStartRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = wallet.Name,
+                            Address = wallet.Address,
+                            PrivateKey = wallet.PrivateKey,
+                            PublicKey = wallet.PublicKey,
+                            MnemonicPhrase = wallet.MnemonicPhrase
+                        },
+                        HeroId = heroId
+                    });
+
+                return response.Success;
+
+                /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
@@ -104,13 +126,14 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 };
 
                 var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
+                    Settings.Default.QuestContractAddress.Trim());
                 var gas = new HexBigInteger(new BigInteger(400000));
                 var value = new HexBigInteger(new BigInteger(0));
-                var transaction = contract.GetFunction("cancelQuest").SendTransactionAsync(account.Address, gas, value, heroId);
-                transaction.Wait();
 
-                return true;
+                var receiptForSetFunctionCall = await contract.GetFunction("cancelQuest")
+                    .SendTransactionAndWaitForReceiptAsync(account.Address, gas, value, null, heroId);
+                return !string.IsNullOrWhiteSpace(receiptForSetFunctionCall.TransactionHash);
+                */
             }
             catch (Exception ex)
             {
@@ -120,10 +143,28 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return false;
         }
 
-        public async Task<bool> StartQuesting(Account account, int heroId)
+        public async Task<bool> StartQuesting(DfkWallet wallet, int heroId)
         {
             try
             {
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    QuickRequest.ApiRequestTypes.StartQuest,
+                    new QuestStartRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = wallet.Name,
+                            Address = wallet.Address,
+                            PrivateKey = wallet.PrivateKey,
+                            PublicKey = wallet.PublicKey,
+                            MnemonicPhrase = wallet.MnemonicPhrase
+                        },
+                        HeroId = heroId
+                    });
+
+                return response.Success;
+
+                /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
@@ -134,16 +175,18 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 };
 
                 var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
+                    Settings.Default.QuestContractAddress.Trim());
 
                 var gas = new HexBigInteger(new BigInteger(400000));
                 var value = new HexBigInteger(new BigInteger(0));
-                var transaction = contract.GetFunction("startQuest").SendTransactionAsync(account.Address, gas, value, heroId,
-                    Settings.Default.MiningQuestContractAddress, 1);
-                transaction.Wait();
+
+                var contractFunction = contract.GetFunction("startQuest");
 
 
-                return true;
+                var receiptForSetFunctionCall = await contractFunction
+                    .SendTransactionAndWaitForReceiptAsync(account.Address, gas, value, null, new[] { heroId }, Settings.Default.MiningQuestContractAddress.Trim(), 5);
+                return !string.IsNullOrWhiteSpace(receiptForSetFunctionCall.TransactionHash);
+                */
             }
             catch (Exception ex)
             {

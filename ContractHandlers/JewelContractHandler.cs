@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Numerics;
-
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
@@ -17,6 +18,12 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
         {
             try
             {
+                if (account == null)
+                {
+                    //What wallet failed?
+                    return 0;
+                }
+
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
 
                 //Lets run some routines to get info about each account
@@ -43,6 +50,26 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 if (source.Address.ToLower() == destination.Address.ToLower())
                     return true;
 
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    QuickRequest.ApiRequestTypes.MoveJewel, new JewelTransferRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = source.Name,
+                            Address = source.Address,
+                            PrivateKey = source.PrivateKey,
+                            PublicKey = source.PublicKey,
+                            MnemonicPhrase = source.MnemonicPhrase
+                        },
+                        DestinationAddress = destination.Address
+                    });
+
+                if (response != null)
+                    return response.Success;
+
+                //JewelTransferRequest
+
+                /*
                 var web3 = new Web3(source.WalletAccount, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
@@ -61,6 +88,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 transaction.Wait();
 
                 return true;
+                */
             }
             catch (Exception ex)
             {
