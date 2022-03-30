@@ -273,25 +273,9 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                             var amIQuestingAlready =
                                 await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
                                     DfkWallet.AssignedHero);
-                            if (amIQuestingAlready.IsQuesting)
+                            if (amIQuestingAlready != null)
                             {
-                                QuestCurrentMode = QuestActivityMode.Questing;
-
-                                //Tell system your questing
-                                await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
-                                    WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
-
-                                //Lets tell jewel manager we're done (only if we successfully started quest contract)
-                                await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet,
-                                    NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
-                            }
-                            else
-                            {
-                                //Start the quest
-                                var startQuestResponse = await
-                                    new QuestContractHandler().StartQuesting(DfkWallet,
-                                        DfkWallet.AssignedHero);
-                                if (startQuestResponse)
+                                if (amIQuestingAlready.IsQuesting)
                                 {
                                     QuestCurrentMode = QuestActivityMode.Questing;
 
@@ -299,12 +283,32 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                     await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
                                         WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
 
-                                    //Lets tell jewel manager we're done (only if we succesfully started quest contract)
+                                    //Lets tell jewel manager we're done (only if we successfully started quest contract)
                                     await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet,
                                         NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
                                 }
-                                else timerCheckInstanceStatus.Enabled = true;
+                                else
+                                {
+                                    //Start the quest
+                                    var startQuestResponse = await
+                                        new QuestContractHandler().StartQuesting(DfkWallet,
+                                            DfkWallet.AssignedHero);
+                                    if (startQuestResponse)
+                                    {
+                                        QuestCurrentMode = QuestActivityMode.Questing;
+
+                                        //Tell system your questing
+                                        await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
+                                            WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
+
+                                        //Lets tell jewel manager we're done (only if we succesfully started quest contract)
+                                        await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet,
+                                            NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel));
+                                    }
+                                    else timerCheckInstanceStatus.Enabled = true;
+                                }
                             }
+                            else timerCheckInstanceStatus.Enabled = true;
                         }
                         else timerCheckInstanceStatus.Enabled = true;
                         break;
