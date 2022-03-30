@@ -23,7 +23,16 @@ namespace DefiKindom_QuestRunner
         public int Status { get; set; }
 
         [JsonIgnore]
-        public bool IsQuesting => Status == 1 && ContractAddress != "0x0000000000000000000000000000000000000000";
+        public bool IsQuesting
+        {
+            get
+            {
+                if (ContractAddress.Trim() == "0x0000000000000000000000000000000000000000")
+                    return false;
+
+                return true;
+            }
+        }
     }
 
 

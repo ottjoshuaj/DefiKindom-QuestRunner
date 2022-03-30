@@ -40,6 +40,11 @@ namespace DefiKindom_QuestRunner.Managers
 
         #region Init Method
 
+        public static void InitSubscription()
+        {
+            SubscribeToEvents();
+        }
+
         public static async Task Init(bool isQuickInit = false)
         {
             try
@@ -72,8 +77,6 @@ namespace DefiKindom_QuestRunner.Managers
             await eventHub.PublishAsync(new WalletDataRefreshEvent { Complete = true });
 
             IsLoaded = true;
-
-            SubscribeToEvents();
         }
 
         #endregion
@@ -462,12 +465,13 @@ namespace DefiKindom_QuestRunner.Managers
 
         public static async Task<DfkWallet> CreateWallet(string name)
         {
-            var newWallet = await new QuickRequest().GetDfkApiResponse<DfkWallet>(
+            var newWalletResponse = await new QuickRequest().GetDfkApiResponse<WalletCreateResponse>(
                 "/api/wallets/create",
                 new WalletCreateRequest
                     { Name = name });
 
-            return newWallet;
+            if (newWalletResponse.Success) return newWalletResponse.Wallet;
+            return null;
         }
 
         public static Wallet ImportWallet(string words)
@@ -581,7 +585,7 @@ namespace DefiKindom_QuestRunner.Managers
             IEnumerable<DfkWallet> instancesToOnBoard;
 
             lock (Wallets)
-                instancesToOnBoard = Wallets.Where(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile);
+                instancesToOnBoard = Wallets.Where(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile).ToList();
 
             foreach (var wallet in instancesToOnBoard)
             {
@@ -592,7 +596,7 @@ namespace DefiKindom_QuestRunner.Managers
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 
-                eventHub.Publish(new MessageEvent
+                await eventHub.PublishAsync(new MessageEvent
                 {
                     Content =
                         $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Creating Quest Instance..."
@@ -606,7 +610,7 @@ namespace DefiKindom_QuestRunner.Managers
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCompleteQuest));
 
-                        eventHub.Publish(new MessageEvent
+                        await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Completed)"
@@ -616,7 +620,7 @@ namespace DefiKindom_QuestRunner.Managers
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCancelQuest));
 
-                        eventHub.Publish(new MessageEvent
+                        await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Canceled)"
@@ -627,7 +631,7 @@ namespace DefiKindom_QuestRunner.Managers
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.Questing));
 
-                        eventHub.Publish(new MessageEvent
+                        await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing)"
@@ -642,7 +646,7 @@ namespace DefiKindom_QuestRunner.Managers
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToQuest));
 
-                        eventHub.Publish(new MessageEvent
+                        await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
@@ -653,7 +657,7 @@ namespace DefiKindom_QuestRunner.Managers
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WaitingOnStamina));
 
-                        eventHub.Publish(new MessageEvent
+                        await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"

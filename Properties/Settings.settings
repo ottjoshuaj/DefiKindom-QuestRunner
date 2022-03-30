@@ -69,7 +69,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ExecutorApi" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://127.0.0.1:9195</Value>
+      <Value Profile="(Default)">http://ec2-54-172-211-174.compute-1.amazonaws.com:9195/</Value>
     </Setting>
   </Settings>
 </SettingsFile>

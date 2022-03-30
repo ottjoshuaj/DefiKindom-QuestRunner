@@ -55,8 +55,7 @@ namespace DefiKindom_QuestRunner
         private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private decimal _startingJewelAmount = 0;
-        private frmManageAllWallets manageAllWalletsFormInstance;
-        Hub eventHub = Hub.Default;
+        readonly Hub _eventHub = Hub.Default;
 
         #endregion
 
@@ -103,6 +102,8 @@ namespace DefiKindom_QuestRunner
 
         private async void Form1_Load(object sender, EventArgs e)
         {
+            WalletManager.InitSubscription();
+
             //Make sure a encryption key is set!
             if (Settings.Default.EncryptionKey.Length == 0)
                 new frmSetApplicationEncryptionKey().ShowDialog(this);
@@ -222,12 +223,14 @@ namespace DefiKindom_QuestRunner
             mnuGenerateNewWallets.Text = @"Generate New Wallets";
             mnuGenerateNewWallets.Click += mnuGenerateNewWallets_Click;
 
-            mnuManageWallets.Items.AddRange(mnuSendOneAndOnboardToDfk, mnuOnboardToDfk, mnuSendHeroesToWallets, mnuRecallHerosToSourceWallet, new RadMenuSeparatorItem());
+            //Add menu items under the MANAGE section
+            mnuManageWallets.Items.AddRange(mnuSendOneAndOnboardToDfk, mnuOnboardToDfk, mnuSendHeroesToWallets,
+                mnuRecallHerosToSourceWallet, new RadMenuSeparatorItem(), mnuGenerateNewWallets);
 
 
             //Add all menu items to wallet menu
             mnuWallets.Items.AddRange(mnuImport,
-                mnuExportWalletDataFile, radMenuSeparatorItem2, new RadMenuSeparatorItem(),
+                mnuExportWalletDataFile, new RadMenuSeparatorItem(),
                 mnuRunWalletInit, new RadMenuSeparatorItem(), mnuManageWallets);
 
 
@@ -268,7 +271,7 @@ namespace DefiKindom_QuestRunner
                             wallet.Name);
                     if (dfkOnboardResult)
                     {
-                        await eventHub.PublishAsync(new MessageEvent()
+                        await _eventHub.PublishAsync(new MessageEvent()
                         {
                             Content =
                                 $"[Wallet:{wallet.Address}] has been onboarded to DFK!"
@@ -330,6 +333,10 @@ namespace DefiKindom_QuestRunner
             
             mnuStartQuestEngine.Enabled = false;
             mnuStopQuestEngine.Enabled = false;
+
+            //AddConsoleMessage("Wallet Data Re-Indexing before quest engine starts...");
+
+            //await WalletManager.Init();
 
             AddConsoleMessage("Loading Quest Instances for questing wallets...");
 
@@ -410,13 +417,8 @@ namespace DefiKindom_QuestRunner
 
         private async void mnuRunWalletInit_Click(object sender, EventArgs e)
         {
-            if (manageAllWalletsFormInstance != null)
-            {
-                manageAllWalletsFormInstance.Close();
-                manageAllWalletsFormInstance = null;
-            }
-
             mnuManageWallets.Enabled = false;
+            gridWallets.Enabled = false;
 
             EnableUxControls(false);
 
@@ -426,6 +428,7 @@ namespace DefiKindom_QuestRunner
             AddConsoleMessage("Wallet database indexed...");
 
             mnuManageWallets.Enabled = true;
+            gridWallets.Enabled = true;
         }
 
         private void mnuAbout_Click(object sender, EventArgs e)
@@ -713,7 +716,7 @@ namespace DefiKindom_QuestRunner
                                         heroId);
                                 if (heroSentToWalletResult)
                                 {
-                                    await eventHub.PublishAsync(new MessageEvent()
+                                    await _eventHub.PublishAsync(new MessageEvent()
                                     {
                                         Content =
                                             $"[Wallet:{sourceWallet.Address}] => Received => [Hero:{heroId}] (Recalled Action)"
@@ -770,7 +773,7 @@ namespace DefiKindom_QuestRunner
                                 firstAvailableHero);
                         if (heroSentToWalletResult)
                         {
-                            await eventHub.PublishAsync(new MessageEvent()
+                            await _eventHub.PublishAsync(new MessageEvent()
                             {
                                 Content =
                                     $"[Wallet:{walletToReceiveHero.Address}] => Received => [Hero:{firstAvailableHero}]"
@@ -888,7 +891,7 @@ namespace DefiKindom_QuestRunner
                             walletToOnBoard.Name);
                     if (dfkOnboardResult)
                     {
-                        await eventHub.PublishAsync(new MessageEvent()
+                        await _eventHub.PublishAsync(new MessageEvent()
                         {
                             Content =
                                 $"[Wallet:{walletToOnBoard.Address}] has been onboarded to DFK!"
@@ -917,13 +920,14 @@ namespace DefiKindom_QuestRunner
 
         private void LoadEventSubscriptions()
         {
-            eventHub.Subscribe<MessageEvent>(this, msgEvent =>
+            //Inline Subscription Handlers
+            _eventHub.Subscribe<MessageEvent>(this, msgEvent =>
             {
                 if (!string.IsNullOrWhiteSpace(msgEvent.Content))
                     AddConsoleMessage(msgEvent.Content);
             });
 
-            eventHub.Subscribe<WalletDataRefreshEvent>(this, wdRefreshEvent =>
+            _eventHub.Subscribe<WalletDataRefreshEvent>(this, wdRefreshEvent =>
             {
                 if (wdRefreshEvent.Complete)
                 {
@@ -931,9 +935,9 @@ namespace DefiKindom_QuestRunner
                 }
             });
 
-            eventHub.Subscribe<NotificationEvent>(this, ShowDesktopAlert);
+            _eventHub.Subscribe<NotificationEvent>(this, ShowDesktopAlert);
 
-            eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
+            _eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
             {
                 switch (msgEvent.OnQuestMessageEventType)
                 {
@@ -953,7 +957,7 @@ namespace DefiKindom_QuestRunner
                 UpdateChartInformation(msgEvent);
             });
 
-            eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
+            _eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
             {
                 if (jewelInfoEvent.JewelInformation != null)
                 {
@@ -964,9 +968,10 @@ namespace DefiKindom_QuestRunner
                 }
             });
 
-            eventHub.Subscribe<WalletJewelMovedEvent>(UpdateGridWithJewelLocationInfo);
-            eventHub.Subscribe<ManageWalletGridEvent>(UpdateWalletGridEvent);
-            eventHub.Subscribe<WalletsGeneratedEvent>(Subscriber);
+            //Full function subscription handlers
+            _eventHub.Subscribe<WalletJewelMovedEvent>(UpdateGridWithJewelLocationInfo);
+            _eventHub.Subscribe<ManageWalletGridEvent>(UpdateWalletGridEvent);
+            _eventHub.Subscribe<WalletsGeneratedEvent>(Subscriber);
         }
 
         void UpdateGridWithJewelLocationInfo(WalletJewelMovedEvent evt)
@@ -1119,7 +1124,11 @@ namespace DefiKindom_QuestRunner
                 HandleQuestStartStopEnabled(true, false);
 
             //Set initial chart
-            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(WalletManager.GetWallets().Count));
+            try
+            {
+                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(WalletManager.GetWallets().Count));
+            } catch {}
+
         }
 
         #endregion
@@ -1222,27 +1231,23 @@ namespace DefiKindom_QuestRunner
         #endregion
 
         #region NodeJs Server Handlers
-
+        
         private async void CheckForServer()
         {
             try
             {
                 var response =
                     await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>("/api/verify");
-                if (!response.Success)
+                if (response != null)
                 {
-                    RadMessageBox.Show(this, response.Error.ToString(),
-                        "Server Down!");
-
-                    Application.Exit();
+                    if(!response.Success)
+                        ShowRadAlertMessageBox("DFKQR+ URL is in-accessible!  This connection is REQUIRED to properly work!", "Server Down!");
                 }
             }
             catch (Exception ex)
             {
-                RadMessageBox.Show(this, "DFKQR+ Server is down. Application can not run unless it is up!",
+                ShowRadAlertMessageBox("DFKQR+ URL is in-accessible!  This connection is REQUIRED to properly work!",
                     "Server Down!");
-
-                Application.Exit();
             }
         }
 

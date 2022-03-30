@@ -77,10 +77,7 @@ namespace DefiKindom_QuestRunner.Objects
 
                 //Check to see the time rIGHT NOW is equal to or GREATEr then the time
                 //DFK says the quest completes at
-                if (DateTime.Now >= AssignedHeroQuestStatus.QuestCompletesAt)
-                    return true;
-
-                return false;
+                return DateTime.Now >= AssignedHeroQuestStatus.QuestCompletesAt;
             }
         }
 
@@ -92,7 +89,7 @@ namespace DefiKindom_QuestRunner.Objects
                 //If no quest status then we know we're not questing!
                 if (AssignedHeroQuestStatus == null) return false;
 
-                //Check time from start to finsih...if its past the amount of time... need canceled ?
+                //Check time from start to finish...if its past the amount of time... need canceled ?
                 var now = DateTime.Now;
                 var timeBetweenStartAndNow = now.Subtract(AssignedHeroQuestStatus.QuestStartedAt.GetValueOrDefault());
 
@@ -107,44 +104,18 @@ namespace DefiKindom_QuestRunner.Objects
             get
             {
                 if (AssignedHeroQuestStatus == null) return false;
-                if (AssignedHeroQuestStatus.ContractAddress == "0x0000000000000000000000000000000000000000")
-                    return false;
-
-                return true;
+                return AssignedHeroQuestStatus.ContractAddress != "0x0000000000000000000000000000000000000000";
             }
         }
 
 
         [JsonIgnore]
-        public bool ReadyToWork
-        {
-            get
-            {
-                if (HasDkProfile && CurrentBalance > 1 && AssignedHero > 0)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
+        public bool ReadyToWork => HasDkProfile && CurrentBalance > 1 && AssignedHero > 0;
 
         [JsonIgnore]
-        public bool HasDkProfile
-        {
-            get
-            {
-                return DfkProfile != null;
-            }
-        }
+        public bool HasDkProfile => DfkProfile != null;
 
         [JsonIgnore]
-        public int TotalAccountHeroes
-        {
-            get
-            {
-                return AvailableHeroes.Count;
-            }
-        }
+        public int TotalAccountHeroes => AvailableHeroes?.Count ?? 0;
     }
 }

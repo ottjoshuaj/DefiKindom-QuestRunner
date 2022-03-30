@@ -42,6 +42,7 @@ namespace DefiKindom_QuestRunner.Managers
 
             //Subscribe to events
             eventHub.Subscribe<NeedJewelEvent>(InstanceJewelEvent);
+            eventHub.Subscribe<PreferenceUpdateEvent>(PreferencesEventHandler);
 
             //Get The Jewel Owner
             await eventHub.PublishAsync(new MessageEvent { Content = $"Checking for jewel holder...." });
@@ -122,6 +123,12 @@ namespace DefiKindom_QuestRunner.Managers
                     _jewelIsBusy = false;
                     break;
             }
+        }
+
+        private static void PreferencesEventHandler(PreferenceUpdateEvent evt)
+        {
+            if(timerToCheckWhoNextGetsJewel != null)
+                timerToCheckWhoNextGetsJewel.Interval = evt.JewelTimerInterval;
         }
 
         #endregion
@@ -208,13 +215,13 @@ namespace DefiKindom_QuestRunner.Managers
                     //Tell current wallet jewel has been removed from their account
                     await eventHub.PublishAsync(new NeedJewelEvent(_currentWalletWithTheJewel, NeedJewelEvent.JewelEventRequestTypes.JewelMovedOffAccount));
 
+                    await eventHub.PublishAsync(new MessageEvent { Content = $"[Source Wallet:{_currentWalletWithTheJewel.Address}] => [Destination Wallet:${walletNextInQueue.Address}] => Jewel has been moved!" });
+
                     //Since success we need to tell the system that this current wallet now holds the jewel
                     _currentWalletWithTheJewel = walletNextInQueue;
 
                     //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
                     _jewelIsBusy = true;
-
-                    await eventHub.PublishAsync(new MessageEvent { Content = $"[Source Wallet:{_currentWalletWithTheJewel.Address}] => [Destination Wallet:${walletNextInQueue.Address}] => Jewel has been moved!" });
 
                     //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
                     await eventHub.PublishAsync(new NeedJewelEvent(walletNextInQueue, NeedJewelEvent.JewelEventRequestTypes.JewelMovedToAccount));

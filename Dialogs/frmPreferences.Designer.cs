@@ -39,6 +39,8 @@
             this.tabControl = new Telerik.WinControls.UI.RadPageView();
             this.tabAppSettings = new Telerik.WinControls.UI.RadPageViewPage();
             this.radGroupBox3 = new Telerik.WinControls.UI.RadGroupBox();
+            this.txtNodeJsServerEndpoint = new Telerik.WinControls.UI.RadTextBox();
+            this.radLabel5 = new Telerik.WinControls.UI.RadLabel();
             this.radLabel4 = new Telerik.WinControls.UI.RadLabel();
             this.txtQuestInterval = new Telerik.WinControls.UI.RadSpinEditor();
             this.radLabel3 = new Telerik.WinControls.UI.RadLabel();
@@ -47,8 +49,6 @@
             this.chkHideToTrayOnMinimize = new Telerik.WinControls.UI.RadCheckBox();
             this.tabBlockChainSettings = new Telerik.WinControls.UI.RadPageViewPage();
             this.btnCancel = new Telerik.WinControls.UI.RadButton();
-            this.radLabel5 = new Telerik.WinControls.UI.RadLabel();
-            this.txtNodeJsServerEndpoint = new Telerik.WinControls.UI.RadTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.radGroupBox1)).BeginInit();
             this.radGroupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel2)).BeginInit();
@@ -61,6 +61,8 @@
             this.tabAppSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.radGroupBox3)).BeginInit();
             this.radGroupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtQuestInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel3)).BeginInit();
@@ -70,8 +72,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.chkHideToTrayOnMinimize)).BeginInit();
             this.tabBlockChainSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnCancel)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             this.SuspendLayout();
             // 
@@ -176,6 +176,23 @@
             this.radGroupBox3.Text = "Instance Settings";
             this.radGroupBox3.ThemeName = "Material";
             // 
+            // txtNodeJsServerEndpoint
+            // 
+            this.txtNodeJsServerEndpoint.Location = new System.Drawing.Point(14, 263);
+            this.txtNodeJsServerEndpoint.Name = "txtNodeJsServerEndpoint";
+            this.txtNodeJsServerEndpoint.Size = new System.Drawing.Size(518, 36);
+            this.txtNodeJsServerEndpoint.TabIndex = 5;
+            this.txtNodeJsServerEndpoint.ThemeName = "Material";
+            // 
+            // radLabel5
+            // 
+            this.radLabel5.Location = new System.Drawing.Point(14, 236);
+            this.radLabel5.Name = "radLabel5";
+            this.radLabel5.Size = new System.Drawing.Size(235, 21);
+            this.radLabel5.TabIndex = 4;
+            this.radLabel5.Text = "DFKQR+ NodeJS Contract Endpoint";
+            this.radLabel5.ThemeName = "Material";
+            // 
             // radLabel4
             // 
             this.radLabel4.Location = new System.Drawing.Point(14, 137);
@@ -194,13 +211,13 @@
             0,
             0});
             this.txtQuestInterval.Minimum = new decimal(new int[] {
-            10000,
+            2000,
             0,
             0,
             0});
             this.txtQuestInterval.Name = "txtQuestInterval";
             this.txtQuestInterval.NullableValue = new decimal(new int[] {
-            10000,
+            5000,
             0,
             0,
             0});
@@ -208,7 +225,7 @@
             this.txtQuestInterval.TabIndex = 2;
             this.txtQuestInterval.ThemeName = "Material";
             this.txtQuestInterval.Value = new decimal(new int[] {
-            10000,
+            5000,
             0,
             0,
             0});
@@ -231,7 +248,7 @@
             0,
             0});
             this.txtJewelInstanceInterval.Minimum = new decimal(new int[] {
-            1000,
+            500,
             0,
             0,
             0});
@@ -291,23 +308,6 @@
             this.btnCancel.ThemeName = "Material";
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // radLabel5
-            // 
-            this.radLabel5.Location = new System.Drawing.Point(14, 236);
-            this.radLabel5.Name = "radLabel5";
-            this.radLabel5.Size = new System.Drawing.Size(235, 21);
-            this.radLabel5.TabIndex = 4;
-            this.radLabel5.Text = "DFKQR+ NodeJS Contract Endpoint";
-            this.radLabel5.ThemeName = "Material";
-            // 
-            // txtNodeJsServerEndpoint
-            // 
-            this.txtNodeJsServerEndpoint.Location = new System.Drawing.Point(14, 263);
-            this.txtNodeJsServerEndpoint.Name = "txtNodeJsServerEndpoint";
-            this.txtNodeJsServerEndpoint.Size = new System.Drawing.Size(518, 36);
-            this.txtNodeJsServerEndpoint.TabIndex = 5;
-            this.txtNodeJsServerEndpoint.ThemeName = "Material";
-            // 
             // frmPreferences
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -342,6 +342,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.radGroupBox3)).EndInit();
             this.radGroupBox3.ResumeLayout(false);
             this.radGroupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtQuestInterval)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.radLabel3)).EndInit();
@@ -352,8 +354,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.chkHideToTrayOnMinimize)).EndInit();
             this.tabBlockChainSettings.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.btnCancel)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.radLabel5)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.txtNodeJsServerEndpoint)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
             this.ResumeLayout(false);
 

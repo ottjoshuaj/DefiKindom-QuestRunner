@@ -1,19 +1,34 @@
 ﻿using System;
 using System.Globalization;
-
+using System.Threading.Tasks;
+using Telerik.WinControls;
 using Telerik.WinControls.UI;
 
 using DefiKindom_QuestRunner.Properties;
+using PubSub;
 
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
 
 namespace DefiKindom_QuestRunner.Dialogs
 {
     public partial class frmPreferences : RadForm
     {
+        #region Internals
+
+        Hub eventHub = Hub.Default;
+
+        #endregion
+
+        #region Constructor(s)
+
         public frmPreferences()
         {
             InitializeComponent();
+
         }
+
+        #endregion
 
         #region Form Events
 
@@ -52,8 +67,25 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         #region Button Events
 
-        private void btnSavePreferences_Click(object sender, EventArgs e)
+        private async void btnSavePreferences_Click(object sender, EventArgs e)
         {
+            var oldServer = Settings.Default.ExecutorApi;
+
+            Settings.Default.ExecutorApi = txtNodeJsServerEndpoint.Text;
+            Settings.Default.Save();
+
+            var serverIsValid = await CheckForServer();
+            if (!serverIsValid)
+            {
+                Settings.Default.ExecutorApi = oldServer;
+                Settings.Default.Save();
+
+                RadMessageBox.Show(this, "DFKQR+ URL is in-accessible! Double check the url and ensure it is correct",
+                    "URL Unreachable");
+
+                return;
+            }
+
             //Local/Hosted NodeJS Server
             Settings.Default.ExecutorApi = txtNodeJsServerEndpoint.Text;
 
@@ -61,6 +93,11 @@ namespace DefiKindom_QuestRunner.Dialogs
             Settings.Default.MinimizeToTray = chkHideToTrayOnMinimize.Checked;
 
             //Instance Intervals
+            var intervalsChanged =
+                Convert.ToInt32(txtJewelInstanceInterval.Value) != Settings.Default.JewelInstanceMsInterval ||
+                Convert.ToInt32(txtQuestInterval.Value) != Settings.Default.QuestInstanceMsInterval;
+
+
             Settings.Default.JewelInstanceMsInterval = int.Parse(txtJewelInstanceInterval.Value.ToString(CultureInfo.InvariantCulture));
             Settings.Default.QuestInstanceMsInterval = int.Parse(txtQuestInterval.Value.ToString(CultureInfo.InvariantCulture));
 
@@ -71,6 +108,15 @@ namespace DefiKindom_QuestRunner.Dialogs
 
             Settings.Default.Save();
 
+            if (intervalsChanged)
+            {
+                await eventHub.PublishAsync(new PreferenceUpdateEvent
+                {
+                    JewelTimerInterval = Settings.Default.JewelInstanceMsInterval,
+                    QuestInstanceInterval = Settings.Default.QuestInstanceMsInterval
+                });
+            }
+
             Close();
         }
 
@@ -80,5 +126,26 @@ namespace DefiKindom_QuestRunner.Dialogs
         }
 
         #endregion
+
+        #region NodeJs Server Verifier
+
+        private async Task<bool> CheckForServer()
+        {
+            try
+            {
+                var response =
+                    await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>("/api/verify");
+                if (response != null)
+                    return response.Success;
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }
+//PreferenceUpdateEvent

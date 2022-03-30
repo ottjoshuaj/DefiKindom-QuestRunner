@@ -65,13 +65,12 @@ namespace DefiKindom_QuestRunner
             this.mnuManageFishing = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuManageRPCSettings = new Telerik.WinControls.UI.RadMenuItem();
             this.cmbRpcUrls = new Telerik.WinControls.UI.RadMenuComboItem();
-            this.radMenuSeparatorItem2 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.txtStatusConsole = new System.Windows.Forms.RichTextBox();
             this.radStatusStrip1 = new Telerik.WinControls.UI.RadStatusStrip();
             this.toolStripWalletCount = new Telerik.WinControls.UI.RadLabelElement();
             this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
-            this.toolStripJewelAmount = new Telerik.WinControls.UI.RadLabelElement();
             this.lblAppStatus = new Telerik.WinControls.UI.RadLabelElement();
+            this.toolStripJewelAmount = new Telerik.WinControls.UI.RadLabelElement();
             this.materialBlueGreyTheme1 = new Telerik.WinControls.Themes.MaterialBlueGreyTheme();
             this.materialPinkTheme1 = new Telerik.WinControls.Themes.MaterialPinkTheme();
             this.materialTheme1 = new Telerik.WinControls.Themes.MaterialTheme();
@@ -286,12 +285,6 @@ namespace DefiKindom_QuestRunner
             this.cmbRpcUrls.Name = "cmbRpcUrls";
             this.cmbRpcUrls.Text = "";
             // 
-            // radMenuSeparatorItem2
-            // 
-            this.radMenuSeparatorItem2.Name = "radMenuSeparatorItem2";
-            this.radMenuSeparatorItem2.Text = "radMenuSeparatorItem2";
-            this.radMenuSeparatorItem2.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // txtStatusConsole
             // 
             this.txtStatusConsole.BackColor = System.Drawing.Color.White;
@@ -311,7 +304,6 @@ namespace DefiKindom_QuestRunner
             this.toolStripWalletCount,
             this.commandBarSeparator1,
             this.lblAppStatus,
-            new CommandBarSeparator(),
             this.toolStripJewelAmount});
             this.radStatusStrip1.Location = new System.Drawing.Point(0, 887);
             this.radStatusStrip1.Name = "radStatusStrip1";
@@ -332,19 +324,19 @@ namespace DefiKindom_QuestRunner
             this.radStatusStrip1.SetSpring(this.commandBarSeparator1, false);
             this.commandBarSeparator1.VisibleInOverflowMenu = false;
             // 
-            // toolStripJewelAmount
-            // 
-            this.toolStripJewelAmount.Name = "toolStripJewelAmount";
-            this.radStatusStrip1.SetSpring(this.toolStripJewelAmount, false);
-            this.toolStripJewelAmount.Text = "Jewel Earned (0)";
-            this.toolStripJewelAmount.TextWrap = true;
-            // 
             // lblAppStatus
             // 
             this.lblAppStatus.Name = "lblAppStatus";
             this.radStatusStrip1.SetSpring(this.lblAppStatus, false);
             this.lblAppStatus.Text = "Idle";
             this.lblAppStatus.TextWrap = true;
+            // 
+            // toolStripJewelAmount
+            // 
+            this.toolStripJewelAmount.Name = "toolStripJewelAmount";
+            this.radStatusStrip1.SetSpring(this.toolStripJewelAmount, false);
+            this.toolStripJewelAmount.Text = "Jewel Earned (0)";
+            this.toolStripJewelAmount.TextWrap = true;
             // 
             // desktopAlert
             // 
@@ -904,7 +896,6 @@ namespace DefiKindom_QuestRunner
         private Telerik.WinControls.UI.RadMenuItem mnuActions;
         private Telerik.WinControls.UI.RadMenuItem mnuCreateRandomWallets;
         private Telerik.WinControls.UI.RadMenuItem mnuImportExistingWallet;
-        private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem2;
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem1;
         private Telerik.WinControls.UI.RadMenuItem mnuImportWalletDataFile;
         private Telerik.WinControls.UI.RadMenuItem mnuExportWalletDataFile;

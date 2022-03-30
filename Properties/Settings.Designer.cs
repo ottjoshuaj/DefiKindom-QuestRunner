@@ -264,7 +264,7 @@ namespace DefiKindom_QuestRunner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://127.0.0.1:9195")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://ec2-54-172-211-174.compute-1.amazonaws.com:9195/")]
         public string ExecutorApi {
             get {
                 return ((string)(this["ExecutorApi"]));
