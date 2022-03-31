@@ -414,7 +414,6 @@
     <Compile Include="ContractHandlers\QuestContractHandler.cs" />
     <Compile Include="Managers\JewelManager.cs" />
     <Compile Include="Objects\Events\JewelInformationEvent.cs" />
-    <Compile Include="Objects\Events\ManageWalletGridEvent.cs" />
     <Compile Include="Objects\Events\NeedJewelEvent.cs" />
     <Compile Include="Managers\WalletManager.cs" />
     <Compile Include="Objects\DfkWallet.cs" />
@@ -424,7 +423,6 @@
     <Compile Include="Objects\Events\QuestInstancesLoaded.cs" />
     <Compile Include="Objects\Events\WalletAddedEvent.cs" />
     <Compile Include="Objects\Events\WalletDataRefreshEvent.cs" />
-    <Compile Include="Objects\Events\WalletJewelMovedEvent.cs" />
     <Compile Include="Objects\Events\WalletQuestStatusEvent.cs" />
     <Compile Include="Objects\Events\WalletsGeneratedEvent.cs" />
     <Compile Include="Objects\Events\WalletsOnQuestsMessageEvent.cs" />

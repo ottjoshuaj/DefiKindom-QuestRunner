@@ -108,8 +108,6 @@ namespace DefiKindom_QuestRunner.Managers
                                 wallet.JewelBalance = jewelHolder?.JewelBalance ?? 0;
                             }
                         }
-
-                        eventHub.Publish(new WalletJewelMovedEvent());
                         break;
                 }
             }
@@ -222,6 +220,7 @@ namespace DefiKindom_QuestRunner.Managers
                     wallet.AssignedHeroStamina = 0;
                     wallet.AssignedHeroQuestStatus = null;
                     wallet.HeroProfiles = null;
+                    wallet.AvailableHeroes?.Clear();
                 }
                 else
                 {

@@ -772,6 +772,11 @@ namespace DefiKindom_QuestRunner
                             await WalletManager.ReloadWalletHeroData(sourceWallet.Address);
                             await WalletManager.ReloadWalletHeroData(wallet.Address);
 
+                            //Force "wallet" we are cleaning up to have no assigned hero, no stam, and clear out available heroes
+                            WalletManager.GetWallet(wallet.Address).AssignedHero = 0;
+                            WalletManager.GetWallet(wallet.Address).AssignedHeroStamina = 0;
+                            WalletManager.GetWallet(wallet.Address).AvailableHeroes?.Clear();
+
                             WalletManager.SaveWallets();
 
                             LoadDataToGrid();
@@ -825,8 +830,14 @@ namespace DefiKindom_QuestRunner
                             });
                         }
 
-                        await WalletManager.ReloadWalletHeroData(walletToReceiveHero.Address);
+                        //Remove hero from source wallet
+                        WalletManager.GetWallet(sourceWallet.Address).AvailableHeroes?.Remove(firstAvailableHero);
 
+                        //Add hero to destination wallet
+                        WalletManager.GetWallet(walletToReceiveHero.Address).AssignedHero = firstAvailableHero;
+                        WalletManager.GetWallet(walletToReceiveHero.Address).AvailableHeroes?.Add(firstAvailableHero);
+
+                        //Save Wallet data
                         WalletManager.SaveWallets();
 
                         ShowRadAlertMessageBox(
@@ -1019,22 +1030,10 @@ namespace DefiKindom_QuestRunner
             });
 
             //Full function subscription handlers
-            _eventHub.Subscribe<WalletJewelMovedEvent>(UpdateGridWithJewelLocationInfo);
-            _eventHub.Subscribe<ManageWalletGridEvent>(UpdateWalletGridEvent);
             _eventHub.Subscribe<WalletsGeneratedEvent>(Subscriber);
             _eventHub.Subscribe<WalletQuestStatusEvent>(UpdateGridQuestStatusInfo);
         }
 
-        void UpdateGridWithJewelLocationInfo(WalletJewelMovedEvent evt)
-        {
-            LoadDataToGrid();
-        }
-
-        void UpdateWalletGridEvent(ManageWalletGridEvent evt)
-        {
-            gridWallets.Invalidate();
-            //LoadDataToGrid();  TODO:  see if we need to do something
-        }
 
         void UpdateGridQuestStatusInfo(WalletQuestStatusEvent evt)
         {
@@ -1126,6 +1125,8 @@ namespace DefiKindom_QuestRunner
                     var jewelProfit = (jewelInfo.Balance - _startingJewelAmount);
                     toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({jewelProfit}/{formatTotalJewel})";
                 }
+
+                LoadDataToGrid();
             }
         }
 

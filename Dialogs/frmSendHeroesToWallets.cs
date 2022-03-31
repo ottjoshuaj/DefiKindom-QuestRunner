@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,6 +79,7 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         async Task<bool> SendHeroesToWallets()
         {
+            var heroesTransferedOffSourceWallet = new List<int>();
             var herosXfered = 0;
 
             var sourceWallet = WalletManager.GetWallets().FirstOrDefault(x => x.IsPrimarySourceWallet);
@@ -86,13 +88,12 @@ namespace DefiKindom_QuestRunner.Dialogs
                 var sourceHeroes = new HeroContractHandler().GetWalletHeroes(sourceWallet.WalletAccount).Result.ToList();
                 if (sourceHeroes.Count > 0)
                 {
-                    //remove the source heroid thats assigned from the list to send
-                    sourceHeroes.Remove(sourceWallet.AssignedHero);
-
                     var walletsNeedingHeroes =
-                        WalletManager.GetWallets().Where(x => x.AssignedHero == 0 && x.HasDkProfile);
-                    foreach (var walletsNeedingHero in walletsNeedingHeroes)
+                        WalletManager.GetWallets().Where(x => x.AssignedHero == 0 && x.HasDkProfile).ToList();
+
+                    for (var i = 0; i < walletsNeedingHeroes.Count; i++)
                     {
+                        var walletNeedingHero = walletsNeedingHeroes[i];
                         var heroToSend = sourceHeroes.FirstOrDefault();
                         if (heroToSend == 0)
                         {
@@ -102,24 +103,59 @@ namespace DefiKindom_QuestRunner.Dialogs
                         //Send hero to current wallet that needs a hero
                         var heroSentToWalletResult =
                             await new HeroContractHandler().SendHeroToWallet(sourceWallet,
-                                walletsNeedingHero.WalletAccount,
+                                walletNeedingHero.WalletAccount,
                                 heroToSend);
                         if (heroSentToWalletResult)
                         {
                             await eventHub.PublishAsync(new MessageEvent()
                             {
-                                Content = $"[Wallet:{walletsNeedingHero.Address}] => Received => [Hero:{heroToSend}]"
+                                Content = $"[Wallet:{walletNeedingHero.Address}] => Received => [Hero:{heroToSend}]"
                             });
+
+
+                            //Force "wallet" we are cleaning up to have no assigned hero, no stam, and clear out available heroes
+                            WalletManager.GetWallet(walletNeedingHero.Address).AssignedHero = heroToSend;
+                            WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
+                            WalletManager.GetWallet(walletNeedingHero.Address).AvailableHeroes?.Add(heroToSend);
+
+                            //Remove the hero from source list so we dont try to send it somewhere else
+                            sourceHeroes.Remove(heroToSend);
+                            heroesTransferedOffSourceWallet.Add(heroToSend);
+
 
                             herosXfered++;
                         }
-
-                        //Remove the hero from source list so we dont try to send it somewhere else
-                        sourceHeroes.Remove(heroToSend);
+                        else
+                        {
+                            //Transaction failed. Try again
+                            //Check if hero somehow still got xfered due to TX lag
+                            var heroList =
+                                await new HeroContractHandler().GetWalletHeroes(walletNeedingHero.WalletAccount);
+                            if (heroList != null)
+                            {
+                                if (heroList.Any(x => x == heroToSend))
+                                {
+                                    //Ok so hero eventually did arrive.  Update stuff
+                                    WalletManager.GetWallet(walletNeedingHero.Address).AssignedHero = heroToSend;
+                                    WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
+                                    WalletManager.GetWallet(walletNeedingHero.Address).AvailableHeroes?.Add(heroToSend);
+                                }
+                                else
+                                {
+                                    i -= 1;
+                                }
+                            }
+                            else
+                            {
+                                i -= 1;
+                            }
+                        }
                     }
                 }
 
-                WalletManager.ReloadWalletHeroes();
+                //Remove all heroes sent to other wallets off the source wallet
+                foreach (var heroIdToRemove in heroesTransferedOffSourceWallet)
+                    sourceWallet.AvailableHeroes.Remove(heroIdToRemove);
 
                 WalletManager.SaveWallets();
 
