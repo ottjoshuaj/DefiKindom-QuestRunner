@@ -1,4 +1,5 @@
-﻿using DefiKindom_QuestRunner.Objects;
+﻿using DefiKindom_QuestRunner.EngineManagers.Engines;
+using DefiKindom_QuestRunner.Objects;
 
 namespace DefiKindom_QuestRunner
 {
@@ -12,11 +13,14 @@ namespace DefiKindom_QuestRunner
             JewelMovedToAccount
         }
 
-        public NeedJewelEvent(DfkWallet wallet, JewelEventRequestTypes type)
+        public NeedJewelEvent(DfkWallet wallet, JewelEventRequestTypes type, QuestEngine.QuestActivityMode currentActivity)
         {
             Wallet = wallet;
             RequestType = type;
+            QuestActivityMode = currentActivity;
         }
+
+        public QuestEngine.QuestActivityMode QuestActivityMode { get; set; }
 
         public JewelEventRequestTypes RequestType { get; set; }
 

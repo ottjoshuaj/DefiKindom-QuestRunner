@@ -71,5 +71,8 @@
     <Setting Name="ExecutorApi" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://ec2-54-172-211-174.compute-1.amazonaws.com:9195/</Value>
     </Setting>
+    <Setting Name="LastKnownJewelHolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

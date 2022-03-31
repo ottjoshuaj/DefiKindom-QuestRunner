@@ -189,6 +189,23 @@ namespace DefiKindom_QuestRunner.Managers
             }
         }
 
+        public static async Task<bool> ReloadDfkProfile(string address)
+        {
+            DfkWallet wallet;
+
+            lock (Wallets)
+                wallet = Wallets.FirstOrDefault(x => x.Address.Trim().ToUpper() == address.Trim().ToUpper());
+
+            if (wallet != null)
+            {
+                var profile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
+                if (profile != null)
+                    wallet.DfkProfile = profile;
+            }
+
+            return true;
+        }
+
         public static async Task<bool> ReloadWalletHeroData(string address)
         {
             DfkWallet wallet;
@@ -199,42 +216,52 @@ namespace DefiKindom_QuestRunner.Managers
             if (wallet != null)
             {
                 var walletHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
-                wallet.AvailableHeroes = walletHeroes;
-
-                if (wallet.HeroProfiles == null)
-                    wallet.HeroProfiles = new List<HeroProfile>();
-                else
-                    wallet.HeroProfiles.Clear();
-
-                //Pull Profile Details for each hero
-                foreach (var heroId in wallet.AvailableHeroes)
-                {
-                    var heroDetails = await new HeroContractHandler().GetHeroDetails(wallet.WalletAccount, heroId);
-                    if (heroDetails == null) continue;
-
-                    if (wallet.HeroProfiles.Any(x => x.Id == heroDetails.Id)) continue;
-
-                    wallet.HeroProfiles.Add(heroDetails);
-                }
-
-                //Always make sure the FIRST index of heroes is who is assigned to the wallet
-                if (wallet.AvailableHeroes == null)
+                if (walletHeroes.Count == 0)
                 {
                     wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
-                }
-                else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
-                {
-                    wallet.AssignedHero = 0;
-                    wallet.AssignedHeroStamina = 0;
+                    wallet.AssignedHeroQuestStatus = null;
+                    wallet.HeroProfiles = null;
                 }
                 else
-                    wallet.AssignedHero = walletHeroes[0];
+                {
+                    wallet.AvailableHeroes = walletHeroes;
 
-                //Get current stamina info for the hero
-                wallet.AssignedHeroStamina =
-                    await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount,
-                        wallet.AssignedHero);
+                    if (wallet.HeroProfiles == null)
+                        wallet.HeroProfiles = new List<HeroProfile>();
+                    else
+                        wallet.HeroProfiles.Clear();
+
+                    //Pull Profile Details for each hero
+                    foreach (var heroId in wallet.AvailableHeroes)
+                    {
+                        var heroDetails = await new HeroContractHandler().GetHeroDetails(wallet.WalletAccount, heroId);
+                        if (heroDetails == null) continue;
+
+                        if (wallet.HeroProfiles.Any(x => x.Id == heroDetails.Id)) continue;
+
+                        wallet.HeroProfiles.Add(heroDetails);
+                    }
+
+                    //Always make sure the FIRST index of heroes is who is assigned to the wallet
+                    if (wallet.AvailableHeroes == null)
+                    {
+                        wallet.AssignedHero = 0;
+                        wallet.AssignedHeroStamina = 0;
+                    }
+                    else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
+                    {
+                        wallet.AssignedHero = 0;
+                        wallet.AssignedHeroStamina = 0;
+                    }
+                    else
+                        wallet.AssignedHero = walletHeroes[0];
+
+                    //Get current stamina info for the hero
+                    wallet.AssignedHeroStamina =
+                        await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount,
+                            wallet.AssignedHero);
+                }
 
                 return true;
             }
@@ -276,12 +303,27 @@ namespace DefiKindom_QuestRunner.Managers
                 loadedQuestDataInfo = true;
             }
 
-
             await eventHub.PublishAsync(new MessageEvent
             { Content = $"[Wallet:{wallet.Name} => {wallet.WalletAccount.Address}] => Loaded!" });
 
             if (!isQuickInit)
             {
+                //Check to see if onboarded to DFK
+                await eventHub.PublishAsync(new MessageEvent
+                    { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => Checking if DFK Profile Exists...." });
+
+                var dfkProfile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
+                if (dfkProfile != null)
+                    wallet.DfkProfile = dfkProfile;
+
+                await eventHub.PublishAsync(wallet.DfkProfile != null
+                    ? new MessageEvent { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => DFK Profile Exists!" }
+                    : new MessageEvent
+                    {
+                        Content =
+                            $"[Wallet:{wallet.Name} => {wallet.Address}] => DFK Profile DOES NOT Exists...(will need onboarded!)"
+                    });
+
                 //Check to see what heroes are on each wallet
                 await eventHub.PublishAsync(new MessageEvent
                 { Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => Building a list of heroes on wallet...." });
@@ -385,21 +427,6 @@ namespace DefiKindom_QuestRunner.Managers
                 await eventHub.PublishAsync(new MessageEvent
                     {Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => [ONE Balance:{wallet.CurrentBalance}]"});
 
-
-
-                //Check to see if onboarded to DFK
-                await eventHub.PublishAsync(new MessageEvent
-                    {Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => Checking if DFK Profile Exists...."});
-
-                wallet.DfkProfile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
-
-                await eventHub.PublishAsync(wallet.DfkProfile != null
-                    ? new MessageEvent {Content = $"[Wallet:{wallet.Name} => {wallet.Address}] => DFK Profile Exists!"}
-                    : new MessageEvent
-                    {
-                        Content =
-                            $"[Wallet:{wallet.Name} => {wallet.Address}] => DFK Profile DOES NOT Exists...(will need onboarded!)"
-                    });
             }
 
             return wallet;
@@ -497,6 +524,15 @@ namespace DefiKindom_QuestRunner.Managers
                     {
                         selWallet.JewelBalance = jewelBalance;
                         selWallet.IsHoldingTheJewel = true;
+
+                        lock (Wallets)
+                        {
+                            foreach (var wallet in Wallets.Where(wallet => wallet.Address.Trim().ToUpper() != selWallet.Address.Trim().ToUpper()))
+                            {
+                                wallet.JewelBalance = 0;
+                                wallet.IsHoldingTheJewel = false;
+                            }
+                        }
 
                         return new JewelInformation
                         {
@@ -596,12 +632,6 @@ namespace DefiKindom_QuestRunner.Managers
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 
-                await eventHub.PublishAsync(new MessageEvent
-                {
-                    Content =
-                        $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Creating Quest Instance..."
-                });
-
                 //Wallet is already questing 
                 if (wallet.IsQuesting)
                 {
@@ -613,7 +643,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Completed)"
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Completed)"
                         });
                     } else if (wallet.QuestNeedsCanceled)
                     {
@@ -623,7 +653,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing/Needs Canceled)"
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Canceled)"
                         });
                     }
                     else
@@ -634,7 +664,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Actively Questing)"
+                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing)"
                         });
                     }
                 }

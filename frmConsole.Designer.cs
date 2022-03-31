@@ -46,6 +46,7 @@ namespace DefiKindom_QuestRunner
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn8 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.GridViewTextBoxColumn gridViewTextBoxColumn9 = new Telerik.WinControls.UI.GridViewTextBoxColumn();
             Telerik.WinControls.UI.TableViewDefinition tableViewDefinition1 = new Telerik.WinControls.UI.TableViewDefinition();
+            Telerik.WinControls.UI.TableViewDefinition tableViewDefinition2 = new Telerik.WinControls.UI.TableViewDefinition();
             this.mnuFile = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuWallets = new Telerik.WinControls.UI.RadMenuItem();
             this.mnuActions = new Telerik.WinControls.UI.RadMenuItem();
@@ -91,6 +92,8 @@ namespace DefiKindom_QuestRunner
             this.documentTabStrip1 = new Telerik.WinControls.UI.Docking.DocumentTabStrip();
             this.docWindowManageWallets = new Telerik.WinControls.UI.Docking.DocumentWindow();
             this.gridWallets = new Telerik.WinControls.UI.RadGridView();
+            this.docWindowQuestStatusInfo = new Telerik.WinControls.UI.Docking.DocumentWindow();
+            this.gridQuestInstances = new Telerik.WinControls.UI.RadGridView();
             this.toolTabStripCharts = new Telerik.WinControls.UI.Docking.ToolTabStrip();
             this.toolWindowCharts = new Telerik.WinControls.UI.Docking.ToolWindow();
             this.radSplitContainer1 = new Telerik.WinControls.UI.RadSplitContainer();
@@ -117,6 +120,8 @@ namespace DefiKindom_QuestRunner
             this.mnuGridActionOnBoardDfk = new Telerik.WinControls.UI.RadMenuItem();
             this.radMenuSeparatorItem9 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuGridActionSendJewelTo = new Telerik.WinControls.UI.RadMenuItem();
+            this.radMenuSeparatorItem2 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
+            this.mnuRebuildWalletProfile = new Telerik.WinControls.UI.RadMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.cmbRpcUrls.ComboBoxElement)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
@@ -130,6 +135,9 @@ namespace DefiKindom_QuestRunner
             this.docWindowManageWallets.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).BeginInit();
+            this.docWindowQuestStatusInfo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.gridQuestInstances)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridQuestInstances.MasterTemplate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.toolTabStripCharts)).BeginInit();
             this.toolTabStripCharts.SuspendLayout();
             this.toolWindowCharts.SuspendLayout();
@@ -416,6 +424,7 @@ namespace DefiKindom_QuestRunner
             this.documentTabStrip1.CanUpdateChildIndex = true;
             this.documentTabStrip1.Controls.Add(this.docWindowConsole);
             this.documentTabStrip1.Controls.Add(this.docWindowManageWallets);
+            this.documentTabStrip1.Controls.Add(this.docWindowQuestStatusInfo);
             this.documentTabStrip1.Location = new System.Drawing.Point(0, 0);
             this.documentTabStrip1.Name = "documentTabStrip1";
             // 
@@ -570,6 +579,43 @@ namespace DefiKindom_QuestRunner
             this.gridWallets.Size = new System.Drawing.Size(970, 792);
             this.gridWallets.TabIndex = 1;
             this.gridWallets.ThemeName = "Material";
+            // 
+            // docWindowQuestStatusInfo
+            // 
+            this.docWindowQuestStatusInfo.Controls.Add(this.gridQuestInstances);
+            this.docWindowQuestStatusInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.docWindowQuestStatusInfo.Location = new System.Drawing.Point(4, 54);
+            this.docWindowQuestStatusInfo.Name = "docWindowQuestStatusInfo";
+            this.docWindowQuestStatusInfo.PreviousDockState = Telerik.WinControls.UI.Docking.DockState.TabbedDocument;
+            this.docWindowQuestStatusInfo.Size = new System.Drawing.Size(970, 792);
+            this.docWindowQuestStatusInfo.Text = "Quest Instances";
+            // 
+            // gridQuestInstances
+            // 
+            this.gridQuestInstances.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gridQuestInstances.Location = new System.Drawing.Point(0, 0);
+            // 
+            // 
+            // 
+            this.gridQuestInstances.MasterTemplate.AllowAddNewRow = false;
+            this.gridQuestInstances.MasterTemplate.AllowColumnChooser = false;
+            this.gridQuestInstances.MasterTemplate.AllowColumnReorder = false;
+            this.gridQuestInstances.MasterTemplate.AllowColumnResize = false;
+            this.gridQuestInstances.MasterTemplate.AllowDragToGroup = false;
+            this.gridQuestInstances.MasterTemplate.AllowRowResize = false;
+            this.gridQuestInstances.MasterTemplate.AllowSearchRow = true;
+            this.gridQuestInstances.MasterTemplate.AutoGenerateColumns = false;
+            this.gridQuestInstances.MasterTemplate.AutoSizeColumnsMode = Telerik.WinControls.UI.GridViewAutoSizeColumnsMode.Fill;
+            this.gridQuestInstances.MasterTemplate.HorizontalScrollState = Telerik.WinControls.UI.ScrollState.AlwaysShow;
+            this.gridQuestInstances.MasterTemplate.MultiSelect = true;
+            this.gridQuestInstances.MasterTemplate.ViewDefinition = tableViewDefinition2;
+            this.gridQuestInstances.Name = "gridQuestInstances";
+            this.gridQuestInstances.ReadOnly = true;
+            this.gridQuestInstances.ShowCellErrors = false;
+            this.gridQuestInstances.ShowGroupPanel = false;
+            this.gridQuestInstances.Size = new System.Drawing.Size(970, 792);
+            this.gridQuestInstances.TabIndex = 2;
+            this.gridQuestInstances.ThemeName = "Material";
             // 
             // toolTabStripCharts
             // 
@@ -743,7 +789,9 @@ namespace DefiKindom_QuestRunner
             this.mnuGridActionSendOneToWallet,
             this.mnuGridActionOnBoardDfk,
             this.radMenuSeparatorItem9,
-            this.mnuGridActionSendJewelTo});
+            this.mnuGridActionSendJewelTo,
+            this.radMenuSeparatorItem2,
+            this.mnuRebuildWalletProfile});
             this.mnuGridAction.ThemeName = "Material";
             // 
             // mnuGridActionSetAsPrimaryWallet
@@ -837,6 +885,17 @@ namespace DefiKindom_QuestRunner
             this.mnuGridActionSendJewelTo.Text = "Send jewel to wallet";
             this.mnuGridActionSendJewelTo.UseCompatibleTextRendering = false;
             // 
+            // radMenuSeparatorItem2
+            // 
+            this.radMenuSeparatorItem2.Name = "radMenuSeparatorItem2";
+            this.radMenuSeparatorItem2.Text = "radMenuSeparatorItem2";
+            this.radMenuSeparatorItem2.TextAlignment = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // mnuRebuildWalletProfile
+            // 
+            this.mnuRebuildWalletProfile.Name = "mnuRebuildWalletProfile";
+            this.mnuRebuildWalletProfile.Text = "Rebuild Wallet Profile";
+            // 
             // frmConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -869,6 +928,9 @@ namespace DefiKindom_QuestRunner
             this.docWindowManageWallets.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets.MasterTemplate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridWallets)).EndInit();
+            this.docWindowQuestStatusInfo.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.gridQuestInstances.MasterTemplate)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridQuestInstances)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.toolTabStripCharts)).EndInit();
             this.toolTabStripCharts.ResumeLayout(false);
             this.toolWindowCharts.ResumeLayout(false);
@@ -962,6 +1024,10 @@ namespace DefiKindom_QuestRunner
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem9;
         private Telerik.WinControls.UI.RadMenuItem mnuGridActionSendJewelTo;
         private Telerik.WinControls.UI.RadLabelElement lblAppStatus;
+        private RadMenuSeparatorItem radMenuSeparatorItem2;
+        private RadMenuItem mnuRebuildWalletProfile;
+        private Telerik.WinControls.UI.Docking.DocumentWindow docWindowQuestStatusInfo;
+        private RadGridView gridQuestInstances;
     }
 }
 

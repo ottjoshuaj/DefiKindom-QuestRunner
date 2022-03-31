@@ -114,7 +114,8 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                         HeroId = heroId
                     });
 
-                return response.Success;
+                if (response != null)
+                    return response.Success;
 
                 /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
@@ -163,7 +164,8 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                         HeroId = heroId
                     });
 
-                return response.Success;
+                if(response != null)
+                    return response.Success;
 
                 /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)
@@ -212,7 +214,8 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                         HeroId = heroId
                     });
 
-                return response.Success;
+                if (response != null)
+                    return response.Success;
 
                 /*
                 var web3 = new Web3(account, Settings.Default.CurrentRpcUrl)

@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-
+using DefiKindom_QuestRunner.EngineManagers;
+using DefiKindom_QuestRunner.EngineManagers.Engines;
 using PubSub;
 
 using DefiKindom_QuestRunner.Managers.Contracts;
@@ -13,13 +14,31 @@ namespace DefiKindom_QuestRunner.Managers
 {
     internal static class JewelManager
     {
+        #region Internal Objects
+
+        public class WalletsThatNeedJewel
+        {
+            public WalletsThatNeedJewel(DfkWallet wallet, QuestEngine.QuestActivityMode mode)
+            {
+                Wallet = wallet;
+                QuestMode = mode;
+            }
+
+            public DfkWallet Wallet { get; }
+
+            public QuestEngine.QuestActivityMode QuestMode { get; }
+        }
+         
+
+        #endregion
+
         #region Internals
 
-        internal static List<DfkWallet> _walletsNeedingJewel = new List<DfkWallet>();
+        internal static List<WalletsThatNeedJewel> WalletsNeedingJewel = new List<WalletsThatNeedJewel>();
 
-        static Hub eventHub = Hub.Default;
-
-        private static Timer timerToCheckWhoNextGetsJewel;
+        internal static int _jewelMoveAttempts = 0;
+        static readonly Hub EventHub = Hub.Default;
+        private static Timer _timerToCheckWhoNextGetsJewel;
         private static DfkWallet _currentWalletWithTheJewel;
         private static bool _jewelIsBusy;
 
@@ -36,48 +55,40 @@ namespace DefiKindom_QuestRunner.Managers
         /// <summary>
         /// This method HAS to be called on app startup!
         /// </summary>
-        public static async Task Init()
+        public static async Task Init(string address = null)
         {
             if (MonitorIsReady) return;
 
             //Subscribe to events
-            eventHub.Subscribe<NeedJewelEvent>(InstanceJewelEvent);
-            eventHub.Subscribe<PreferenceUpdateEvent>(PreferencesEventHandler);
+            EventHub.Subscribe<NeedJewelEvent>(InstanceJewelEvent);
+            EventHub.Subscribe<PreferenceUpdateEvent>(PreferencesEventHandler);
+            EventHub.Subscribe<QuestInstancesLoaded>(QuestInstancesLoaded);
 
             //Get The Jewel Owner
-            await eventHub.PublishAsync(new MessageEvent { Content = $"Checking for jewel holder...." });
+            await EventHub.PublishAsync(new MessageEvent { Content = $"Checking for jewel holder...." });
 
-            var jewelInfo = await WalletManager.GetJewelHolder();
+            //See if the last "known" holder has the jewel else it will loop wallets to find it
+            var jewelInfo = await WalletManager.GetJewelHolder(address);
             if (jewelInfo != null)
             {
                 _currentWalletWithTheJewel = jewelInfo.Holder;
 
                 //Publish Jewel Information to screen
-                await eventHub.PublishAsync(new JewelInformationEvent { JewelInformation = jewelInfo });
+                await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = jewelInfo });
 
                 //Update the Wallet List so things are accurate
                 WalletManager.SetJewelWalletHolder(jewelInfo);
+                WalletManager.SaveWallets();
+
+                //Set properties so we can speed it up after app restart
+                Settings.Default.LastKnownJewelHolder = jewelInfo.Holder.Address;
+                Settings.Default.Save();
             }
             
 
             //New Timer Instance
-            timerToCheckWhoNextGetsJewel = new Timer(Settings.Default.JewelInstanceMsInterval);
-            timerToCheckWhoNextGetsJewel.Elapsed += TimerToCheckWhoNextGetsJewelOnElapsed;
-            timerToCheckWhoNextGetsJewel.Enabled = true;
-            timerToCheckWhoNextGetsJewel.Start();
-
-            //No wallets in queue. No need to do anything else.
-            //Lets just monitor the jewel location
-            //First time.  Find the location of the jewel
-            var daJewelHolder = await WalletManager.GetJewelHolder();
-            if (daJewelHolder != null)
-            {
-                //Publish message event
-                await eventHub.PublishAsync(new ManageWalletGridEvent { Wallet = daJewelHolder.Holder });
-
-                WalletManager.SaveWallets();
-            }
-
+            _timerToCheckWhoNextGetsJewel = new Timer(Settings.Default.JewelInstanceMsInterval);
+            _timerToCheckWhoNextGetsJewel.Elapsed += TimerToCheckWhoNextGetsJewelOnElapsed;
 
             //Mark Monitor as READY for the app to be allowed to work
             MonitorIsReady = true;
@@ -87,21 +98,29 @@ namespace DefiKindom_QuestRunner.Managers
 
         #region Event Subscriptions
 
-        private static void InstanceJewelEvent(NeedJewelEvent instance)
+        private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
+        {
+            await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager Starter (Queue processing engaged)...." });
+
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Start();
+        }
+
+        public static void InstanceJewelEvent(NeedJewelEvent instance)
         {
             switch (instance.RequestType)
             {
                 case NeedJewelEvent.JewelEventRequestTypes.NeedJewel:
                     //Incoming wallet needs the jewel
-                    lock (_walletsNeedingJewel)
+                    lock (WalletsNeedingJewel)
                     {
                         //Was wallet instance already in list? No sense in double adding!
-                        if (_walletsNeedingJewel.All(x =>
-                                x.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
+                        if (WalletsNeedingJewel.All(x =>
+                                x.Wallet.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
                         {
-                            _walletsNeedingJewel.Add(instance.Wallet);
+                            WalletsNeedingJewel.Add(new WalletsThatNeedJewel(instance.Wallet, instance.QuestActivityMode));
 
-                            eventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Wants the jewel...(Queued)." });
+                            EventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Wants the jewel...(Queued)." });
                         }
                     }
                     break;
@@ -109,14 +128,15 @@ namespace DefiKindom_QuestRunner.Managers
 
                 case NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel:
                     //Incoming wallet needs the jewel
-                    lock (_walletsNeedingJewel)
+                    lock (WalletsNeedingJewel)
                     {
-                        //WAllet is DONE with the jewel, make sure wallet is in the queue list and remove it
-                        if (_walletsNeedingJewel.Any(x => x.Address != instance.Wallet.Address))
+                        //Wallet is DONE with the jewel, make sure wallet is in the queue list and remove it
+                        var walletToRemove = WalletsNeedingJewel.FirstOrDefault(x=>x.Wallet.Address == instance.Wallet.Address);
+                        if (walletToRemove != null)
                         {
-                            _walletsNeedingJewel.Remove(instance.Wallet);
+                            EventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Is Finished With Jewel...(Removed from Queue)." });
 
-                            eventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Is Finished With Jewel...(Removed from Queue)." });
+                            WalletsNeedingJewel.Remove(walletToRemove);
                         }
                     }
 
@@ -127,8 +147,8 @@ namespace DefiKindom_QuestRunner.Managers
 
         private static void PreferencesEventHandler(PreferenceUpdateEvent evt)
         {
-            if(timerToCheckWhoNextGetsJewel != null)
-                timerToCheckWhoNextGetsJewel.Interval = evt.JewelTimerInterval;
+            if(_timerToCheckWhoNextGetsJewel != null)
+                _timerToCheckWhoNextGetsJewel.Interval = evt.JewelTimerInterval;
         }
 
         #endregion
@@ -139,21 +159,24 @@ namespace DefiKindom_QuestRunner.Managers
         {
             if (_jewelIsBusy) return; //Dont execute anything since an instance is STILL using the jewel
 
-            timerToCheckWhoNextGetsJewel.Enabled = false;
+            _timerToCheckWhoNextGetsJewel.Enabled = false;
 
             DfkWallet walletNextInQueue;
 
             //Timer hit (everyone 2 seconds)
             //Lets see whos requesting the jewel
-            lock (_walletsNeedingJewel)
+            lock (WalletsNeedingJewel)
             {
                 //Is there ANY wallets in the queue atm?
-                walletNextInQueue = _walletsNeedingJewel.FirstOrDefault();
+                var searchResults = WalletsNeedingJewel.OrderByDescending(x =>
+                    x.QuestMode == QuestEngine.QuestActivityMode.WantsToCancelQuest ||
+                    x.QuestMode == QuestEngine.QuestActivityMode.WantsToCompleteQuest);
+                walletNextInQueue = searchResults.FirstOrDefault()?.Wallet;
             }
 
             if (walletNextInQueue == null)
             {
-                timerToCheckWhoNextGetsJewel.Enabled = true;
+                _timerToCheckWhoNextGetsJewel.Enabled = true;
                 return;
             }
 
@@ -168,14 +191,14 @@ namespace DefiKindom_QuestRunner.Managers
                     _currentWalletWithTheJewel = jewelHolder.Holder;
 
                     //Publish message event
-                    await eventHub.PublishAsync(new ManageWalletGridEvent { Wallet = _currentWalletWithTheJewel });
+                    await EventHub.PublishAsync(new ManageWalletGridEvent { Wallet = _currentWalletWithTheJewel });
 
                     WalletManager.SaveWallets();
                 }
                 else
                 {
                     //Not good , couldnt find the jewel holder!
-                    timerToCheckWhoNextGetsJewel.Enabled = true;
+                    _timerToCheckWhoNextGetsJewel.Enabled = true;
                     return;
                 }
             }
@@ -187,19 +210,14 @@ namespace DefiKindom_QuestRunner.Managers
                 //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
                 _jewelIsBusy = true;
 
-                await eventHub.PublishAsync(new MessageEvent { Content = $"[Destination Wallet:${walletNextInQueue.Address}] => already has the jewel!" });
+                await EventHub.PublishAsync(new MessageEvent { Content = $"[Destination Wallet:${walletNextInQueue.Address}] => already has the jewel!" });
 
                 //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                await eventHub.PublishAsync(new NeedJewelEvent(walletNextInQueue, NeedJewelEvent.JewelEventRequestTypes.JewelMovedToAccount));
+                var questInstance = QuestEngineManager.GetQuestEngineInstance(walletNextInQueue.Address, QuestEngine.QuestTypes.Mining);
+                questInstance?.Engine.SetAsJewelOwner(true);
             }
             else
             {
-                eventHub.Publish(new MessageEvent
-                {
-                    Content =
-                        $"[Source Wallet:{_currentWalletWithTheJewel.Address}] => [Destination Wallet:${walletNextInQueue.Address}] => Moving Jewel To New Destination"
-                });
-
                 var result =
                     await new JewelContractHandler().SendJewelToAccount(_currentWalletWithTheJewel, walletNextInQueue);
                 if (result)
@@ -209,13 +227,12 @@ namespace DefiKindom_QuestRunner.Managers
                     if (jewelHolder != null)
                     {
                         //Publish message event
-                        await eventHub.PublishAsync(new ManageWalletGridEvent { Wallet = _currentWalletWithTheJewel });
+                        await EventHub.PublishAsync(new ManageWalletGridEvent { Wallet = _currentWalletWithTheJewel });
                     }
 
-                    //Tell current wallet jewel has been removed from their account
-                    await eventHub.PublishAsync(new NeedJewelEvent(_currentWalletWithTheJewel, NeedJewelEvent.JewelEventRequestTypes.JewelMovedOffAccount));
-
-                    await eventHub.PublishAsync(new MessageEvent { Content = $"[Source Wallet:{_currentWalletWithTheJewel.Address}] => [Destination Wallet:${walletNextInQueue.Address}] => Jewel has been moved!" });
+                    //Tell current jewel holder to their done with the jewel
+                    var oldQuestInstance = QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining);
+                    oldQuestInstance?.Engine.SetAsJewelOwner(false);
 
                     //Since success we need to tell the system that this current wallet now holds the jewel
                     _currentWalletWithTheJewel = walletNextInQueue;
@@ -224,12 +241,47 @@ namespace DefiKindom_QuestRunner.Managers
                     _jewelIsBusy = true;
 
                     //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                    await eventHub.PublishAsync(new NeedJewelEvent(walletNextInQueue, NeedJewelEvent.JewelEventRequestTypes.JewelMovedToAccount));
+                    var questInstance = QuestEngineManager.GetQuestEngineInstance(walletNextInQueue.Address, QuestEngine.QuestTypes.Mining);
+                    questInstance?.Engine.SetAsJewelOwner(true);
+                }
+                else
+                {
+                    //Maybe it did xfer? Does the new Destination wallet have the jewel ?
+                    var hasJewelCheck =
+                        await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
+                    if (hasJewelCheck > 0)
+                    {
+                        await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = hasJewelCheck, Holder = walletNextInQueue } });
+
+                        //Tell current jewel holder to their done with the jewel
+                        var oldQuestInstance = QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining);
+                        oldQuestInstance?.Engine.SetAsJewelOwner(false);
+
+                        //Set Current Wallet
+                        _currentWalletWithTheJewel = walletNextInQueue;
+
+                        //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
+                        _jewelIsBusy = true;
+
+                        //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
+                        var questInstance = QuestEngineManager.GetQuestEngineInstance(walletNextInQueue.Address, QuestEngine.QuestTypes.Mining);
+                        questInstance?.Engine.SetAsJewelOwner(true);
+                    }
+
+
+                    //We got a FAIL to send jewel to the account....not sure why though?  Transaction timeout ? Failure ?
+                    //Timer will loop and try sending again.
+                    _jewelMoveAttempts++;
+
+                    if (_jewelMoveAttempts >= 3)
+                    {
+                        //Maybe we already have the jewel?
+                    }
                 }
             }
 
 
-            timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
         }
 
         #endregion

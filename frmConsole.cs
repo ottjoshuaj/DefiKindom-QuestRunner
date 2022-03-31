@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -53,7 +54,7 @@ namespace DefiKindom_QuestRunner
         #region Internals
 
         private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        private DataTable _tableQuestInstances;
         private decimal _startingJewelAmount = 0;
         readonly Hub _eventHub = Hub.Default;
 
@@ -71,6 +72,8 @@ namespace DefiKindom_QuestRunner
         private delegate void ShowRadAlertMessageBoxDelegate(string text, string title);
         private delegate void LoadDataToGridDelegate();
         private delegate void UpdateStatusLabelDelegate(string text);
+        private delegate void WalletQuestStatusEventDelegate(WalletQuestStatusEvent evt);
+
 
         #endregion
 
@@ -121,7 +124,7 @@ namespace DefiKindom_QuestRunner
                     .OfType<FileAppender>()
                     .First();
 
-                var logFileName = $"LogFile-{DateTime.Now.ToShortDateString().Replace("/", "-")}-{DateTime.Now.Hour}.txt";
+                var logFileName = $"LogFile-{DateTime.Now.ToShortDateString().Replace("/", "-")}.txt";
 
                 appender.File = $"{Application.StartupPath}\\Logs\\{logFileName}";
                 appender.ActivateOptions();
@@ -138,6 +141,18 @@ namespace DefiKindom_QuestRunner
 
             LoadDataToGrid();
             HookUpStatCharts();
+
+            //gridQuestInstances.VirtualMode = true;
+            _tableQuestInstances = new DataTable("questInstances");
+            _tableQuestInstances.Columns.Add("WalletAddress");
+            _tableQuestInstances.Columns.Add("ReadableActivityMode");
+            _tableQuestInstances.Columns.Add("HeroId");
+            _tableQuestInstances.Columns.Add("HeroStamina");
+
+            gridQuestInstances.AutoGenerateColumns = true;
+            gridQuestInstances.ReadOnly = true;
+            gridQuestInstances.AllowSearchRow = false;
+            gridQuestInstances.DataSource = _tableQuestInstances;
 
             //Is quest instance running?
             if (QuestEngineManager.GetAllQuestInstances().Count > 0)
@@ -344,6 +359,10 @@ namespace DefiKindom_QuestRunner
 
             AddConsoleMessage($"({instancesStarted}) Quest Instances instantiated...");
 
+            //Tell Jewel Timer to GO
+            _eventHub.PublishAsync(new QuestInstancesLoaded());
+
+
             mnuStopQuestEngine.Enabled = true;
         }
 
@@ -368,6 +387,11 @@ namespace DefiKindom_QuestRunner
             AddConsoleMessage($"Quest Instances stopped...");
 
             mnuStartQuestEngine.Enabled = true;
+
+            //Force this grid to empty
+            _tableQuestInstances.Rows.Clear();
+            gridQuestInstances.Invalidate();
+            gridQuestInstances.Refresh();
         }
 
         private void mnuPreferences_Click(object sender, EventArgs e)
@@ -594,6 +618,7 @@ namespace DefiKindom_QuestRunner
             mnuGridActionSendHeroToWallet.Click += MnuGridActionSendHeroToWalletOnClick;
             mnuGridActionRecallHeroToSource.Click += MnuGridActionRecallHeroToSourceOnClick;
             mnuGridActionRebuildHeroProfile.Click += MnuGridActionRebuildHeroProfileOnClick;
+            mnuRebuildWalletProfile.Click += MnuRebuildWalletProfileOnClick;
 
             mnuGridActionSendOneToWallet.Click += MnuGridActionSendOneToWalletOnClick;
             mnuGridActionOnBoardDfk.Click += MnuGridActionOnBoardDfk_Click;
@@ -668,9 +693,9 @@ namespace DefiKindom_QuestRunner
 
         #region Grid Context Menu
 
-        private void MnuGridActionRebuildHeroProfileOnClick(object sender, EventArgs e)
+        private async void MnuRebuildWalletProfileOnClick(object sender, EventArgs e)
         {
-            mnuGridActionRebuildHeroProfile.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
@@ -678,22 +703,42 @@ namespace DefiKindom_QuestRunner
                 var wallet = selRow.DataBoundItem as DfkWallet;
                 if (wallet != null)
                 {
-                    WalletManager.ReloadWalletHeroData(wallet.Address);
+                    await WalletManager.ReloadWalletHeroData(wallet.Address);
+                    await WalletManager.ReloadDfkProfile(wallet.Address);
+
                     WalletManager.SaveWallets();
 
                     LoadDataToGrid();
-
-                    RadMessageBox.Show(this, $"{wallet.Name} Hero Data and Profiles Rebuilt...",
-                        "Hero Data Rebuilt");
                 }
             }
 
-            mnuGridActionRebuildHeroProfile.Enabled = true;
+            HandleGridContextMenuVisibility(true);
+        }
+
+        private async void MnuGridActionRebuildHeroProfileOnClick(object sender, EventArgs e)
+        {
+            HandleGridContextMenuVisibility(false);
+
+            var selRow = gridWallets.SelectedRows.FirstOrDefault();
+            if (selRow != null)
+            {
+                var wallet = selRow.DataBoundItem as DfkWallet;
+                if (wallet != null)
+                {
+                    await WalletManager.ReloadWalletHeroData(wallet.Address);
+
+                    WalletManager.SaveWallets();
+
+                    selRow.InvalidateRow();
+                }
+            }
+
+            HandleGridContextMenuVisibility(true);
         }
 
         private async void MnuGridActionRecallHeroToSourceOnClick(object sender, EventArgs e)
         {
-            mnuGridActionRecallHeroToSource.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
@@ -740,12 +785,12 @@ namespace DefiKindom_QuestRunner
                 }
             }
 
-            mnuGridActionRecallHeroToSource.Enabled = true;
+            HandleGridContextMenuVisibility(true);
         }
 
         private async void MnuGridActionSendHeroToWalletOnClick(object sender, EventArgs e)
         {
-            mnuGridActionSendHeroToWallet.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
@@ -780,20 +825,21 @@ namespace DefiKindom_QuestRunner
                             });
                         }
 
-                        WalletManager.ReloadWalletHeroData(walletToReceiveHero.Address);
+                        await WalletManager.ReloadWalletHeroData(walletToReceiveHero.Address);
 
                         WalletManager.SaveWallets();
-
-                        LoadDataToGrid();
 
                         ShowRadAlertMessageBox(
                             $"Hero {firstAvailableHero} transferred to wallet {walletToReceiveHero.Address}",
                             "Hero Sent To Wallet");
                     }
                 }
+
+
+                selRow.InvalidateRow();
             }
 
-            mnuGridActionSendHeroToWallet.Enabled = true;
+            HandleGridContextMenuVisibility(true);
         }
 
         private async void MnuGridActionSendJewelToOnClick(object sender, EventArgs e)
@@ -802,7 +848,7 @@ namespace DefiKindom_QuestRunner
                     MessageBoxButtons.YesNo) == DialogResult.No)
                 return;
 
-            mnuGridActionSendJewelTo.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
@@ -832,16 +878,16 @@ namespace DefiKindom_QuestRunner
                     }
 
 
-                    LoadDataToGrid();
+                    selRow.InvalidateRow();
                 }
             }
 
-            mnuGridActionSendJewelTo.Enabled = false;
+            HandleGridContextMenuVisibility(true);
         }
 
         private void MnuGridActionSetAsPrimaryWalletClick(object sender, EventArgs e)
         {
-            mnuGridActionSetAsPrimaryWallet.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
@@ -855,27 +901,29 @@ namespace DefiKindom_QuestRunner
                 }
             }
 
-            mnuGridActionSetAsPrimaryWallet.Enabled = false;
+            HandleGridContextMenuVisibility(true);
         }
 
         private void MnuGridActionSendOneToWalletOnClick(object sender, EventArgs e)
         {
-            mnuGridActionSendOneToWallet.Enabled = false;
+            HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
             if (selRow != null)
             {
                 new frmSendONEToWallets(selRow.DataBoundItem as DfkWallet).ShowDialog(this);
 
-                LoadDataToGrid();
+                selRow.InvalidateRow();
             }
 
-            mnuGridActionSendOneToWallet.Enabled = true;
+            HandleGridContextMenuVisibility(true);
         }
 
         private async void MnuGridActionOnBoardDfk_Click(object sender, EventArgs e)
         {
             mnuOnboardToDfk.Enabled = false;
+
+            HandleGridContextMenuVisibility(false);
 
             //Get wallets that need onboarded
             var onboardedAccounts = false;
@@ -910,8 +958,10 @@ namespace DefiKindom_QuestRunner
                 if (onboardedAccounts)
                     WalletManager.SaveWallets();
 
-                LoadDataToGrid();
+                selRow.InvalidateRow();
             }
+
+            HandleGridContextMenuVisibility(true);
         }
 
         #endregion
@@ -972,6 +1022,7 @@ namespace DefiKindom_QuestRunner
             _eventHub.Subscribe<WalletJewelMovedEvent>(UpdateGridWithJewelLocationInfo);
             _eventHub.Subscribe<ManageWalletGridEvent>(UpdateWalletGridEvent);
             _eventHub.Subscribe<WalletsGeneratedEvent>(Subscriber);
+            _eventHub.Subscribe<WalletQuestStatusEvent>(UpdateGridQuestStatusInfo);
         }
 
         void UpdateGridWithJewelLocationInfo(WalletJewelMovedEvent evt)
@@ -981,9 +1032,43 @@ namespace DefiKindom_QuestRunner
 
         void UpdateWalletGridEvent(ManageWalletGridEvent evt)
         {
-            LoadDataToGrid();
+            gridWallets.Invalidate();
+            //LoadDataToGrid();  TODO:  see if we need to do something
         }
 
+        void UpdateGridQuestStatusInfo(WalletQuestStatusEvent evt)
+        {
+            if (InvokeRequired)
+                Invoke(new WalletQuestStatusEventDelegate(UpdateGridQuestStatusInfo), evt);
+            else
+            {
+                var foundRow = false;
+                lock (_tableQuestInstances)
+                {
+                    for (var i = 0; i < _tableQuestInstances.Rows.Count; i++)
+                    {
+                        if (_tableQuestInstances.Rows[i][0].ToString() == evt.WalletAddress)
+                        {
+                            _tableQuestInstances.Rows[i][1] = evt.ReadableActivityMode;
+                            _tableQuestInstances.Rows[i][3] = evt.HeroStamina;
+
+                            foundRow = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundRow)
+                    {
+                        var row = _tableQuestInstances.NewRow();
+                        row[0] = evt.WalletAddress;
+                        row[1] = evt.ReadableActivityMode;
+                        row[2] = evt.HeroId;
+                        row[3] = evt.HeroStamina;
+                        _tableQuestInstances.Rows.Add(row);
+                    }
+                }
+            }
+        }
 
         void Subscriber(WalletsGeneratedEvent obj)
         {
@@ -1108,11 +1193,11 @@ namespace DefiKindom_QuestRunner
 
                 EnableUxControls(true);
 
-                AddConsoleMessage("Starting the jewel monitoring system...");
+                AddConsoleMessage("Initializing Jewel Monitoring System");
 
-                await JewelManager.Init();
+                await JewelManager.Init(Settings.Default.LastKnownJewelHolder);
 
-                AddConsoleMessage("Jewel monitoring system started");
+                AddConsoleMessage("Jewel Monitoring System initialized!");
 
                 EnableUxControls(true);
             }
@@ -1302,6 +1387,16 @@ namespace DefiKindom_QuestRunner
                     //lblWalletsThatCanQuest.Text = $@"({wallets.Count(x => x.ReadyToWork)}) Wallets Are Quest Ready";
                 }
             }
+        }
+
+        #endregion
+
+        #region Grid ContextMenu Handlers
+
+        void HandleGridContextMenuVisibility(bool visible)
+        {
+            foreach (var item in mnuGridAction.Items)
+                item.Enabled = visible;
         }
 
         #endregion

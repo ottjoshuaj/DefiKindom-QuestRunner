@@ -273,5 +273,17 @@ namespace DefiKindom_QuestRunner.Properties {
                 this["ExecutorApi"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastKnownJewelHolder {
+            get {
+                return ((string)(this["LastKnownJewelHolder"]));
+            }
+            set {
+                this["LastKnownJewelHolder"] = value;
+            }
+        }
     }
 }

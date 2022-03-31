@@ -421,9 +421,11 @@
     <Compile Include="Objects\Events\MessageEvent.cs" />
     <Compile Include="Objects\Events\NotificationEvent.cs" />
     <Compile Include="Objects\Events\PreferenceUpdateEvent.cs" />
+    <Compile Include="Objects\Events\QuestInstancesLoaded.cs" />
     <Compile Include="Objects\Events\WalletAddedEvent.cs" />
     <Compile Include="Objects\Events\WalletDataRefreshEvent.cs" />
     <Compile Include="Objects\Events\WalletJewelMovedEvent.cs" />
+    <Compile Include="Objects\Events\WalletQuestStatusEvent.cs" />
     <Compile Include="Objects\Events\WalletsGeneratedEvent.cs" />
     <Compile Include="Objects\Events\WalletsOnQuestsMessageEvent.cs" />
     <Compile Include="Objects\HeroProfile.cs" />
