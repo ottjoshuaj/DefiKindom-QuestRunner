@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using DefiKindom_QuestRunner.Abis.Objects;
-using DefiKindom_QuestRunner.ApiHandler;
-using DefiKindom_QuestRunner.ApiHandler.Objects;
 
-using Nethereum.HdWallet;
+using Nethereum.Signer;
 using Nethereum.Web3.Accounts;
 using PubSub;
 
-using DefiKindom_QuestRunner.EngineManagers;
-using DefiKindom_QuestRunner.EngineManagers.Engines;
 using DefiKindom_QuestRunner.Helpers;
 using DefiKindom_QuestRunner.Managers.Contracts;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Managers.Engines;
 
 namespace DefiKindom_QuestRunner.Managers
 {
@@ -500,9 +498,9 @@ namespace DefiKindom_QuestRunner.Managers
             return null;
         }
 
-        public static Wallet ImportWallet(string words)
+        public static Account ImportWallet(string privateKey)
         {
-            return new Wallet(words, "");
+            return new Account(privateKey, Chain.MainNet);
         }
 
         public static Account GetWalletAccount(string privateKey)
@@ -634,8 +632,14 @@ namespace DefiKindom_QuestRunner.Managers
                 //Wallet is already questing 
                 if (wallet.IsQuesting)
                 {
+                    //Get hero questing on account
+                    var heroQuesting = wallet.AssignedHeroQuestStatus.HeroesOnQuest.FirstOrDefault();
+
                     if (wallet.QuestNeedsCompleted)
                     {
+                        //Make sure appropriate hero questing is set
+                        wallet.AssignedHero = heroQuesting;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCompleteQuest));
 
@@ -646,6 +650,9 @@ namespace DefiKindom_QuestRunner.Managers
                         });
                     } else if (wallet.QuestNeedsCanceled)
                     {
+                        //Make sure appropriate hero questing is set
+                        wallet.AssignedHero = heroQuesting;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCancelQuest));
 
@@ -657,6 +664,9 @@ namespace DefiKindom_QuestRunner.Managers
                     }
                     else
                     {
+                        //Make sure appropriate hero questing is set
+                        wallet.AssignedHero = heroQuesting;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.Questing));
 
@@ -671,6 +681,19 @@ namespace DefiKindom_QuestRunner.Managers
                 {
                     //Since we're not questing lets just erase it and can repopulate once we STARt questing again
                     wallet.AssignedHeroQuestStatus = null;
+
+                    //Lets always make sure we have the proper hero assigned and get proper stamina amount before
+                    //EVER starting a quest instance
+                    var heroesOnAccount = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
+                    if (heroesOnAccount != null)
+                    {
+                        var firstHeroInList = heroesOnAccount.FirstOrDefault();
+
+                        //Just ensure account is set
+                        wallet.AssignedHero = firstHeroInList;
+                        wallet.AssignedHeroStamina =
+                            await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
+                    }
 
                     //Wallet isnt questing. Is there enough stamina ?
                     if (wallet.AssignedHeroStamina >= 15)

@@ -70,7 +70,6 @@ namespace DefiKindom_QuestRunner
             this.radStatusStrip1 = new Telerik.WinControls.UI.RadStatusStrip();
             this.toolStripWalletCount = new Telerik.WinControls.UI.RadLabelElement();
             this.commandBarSeparator1 = new Telerik.WinControls.UI.CommandBarSeparator();
-            this.lblAppStatus = new Telerik.WinControls.UI.RadLabelElement();
             this.toolStripJewelAmount = new Telerik.WinControls.UI.RadLabelElement();
             this.materialBlueGreyTheme1 = new Telerik.WinControls.Themes.MaterialBlueGreyTheme();
             this.materialPinkTheme1 = new Telerik.WinControls.Themes.MaterialPinkTheme();
@@ -85,6 +84,7 @@ namespace DefiKindom_QuestRunner
             this.radThemeManager1 = new Telerik.WinControls.RadThemeManager();
             this.desktopAlert = new Telerik.WinControls.UI.RadDesktopAlert(this.components);
             this.mnuMainMenu = new Telerik.WinControls.UI.RadMenu();
+            this.mnuView = new Telerik.WinControls.UI.RadMenuItem();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.dockConsole = new Telerik.WinControls.UI.Docking.RadDock();
             this.docWindowConsole = new Telerik.WinControls.UI.Docking.DocumentWindow();
@@ -122,6 +122,7 @@ namespace DefiKindom_QuestRunner
             this.mnuGridActionSendJewelTo = new Telerik.WinControls.UI.RadMenuItem();
             this.radMenuSeparatorItem2 = new Telerik.WinControls.UI.RadMenuSeparatorItem();
             this.mnuRebuildWalletProfile = new Telerik.WinControls.UI.RadMenuItem();
+            this.mnuThemes = new Telerik.WinControls.UI.RadMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.cmbRpcUrls.ComboBoxElement)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.radStatusStrip1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mnuMainMenu)).BeginInit();
@@ -311,7 +312,6 @@ namespace DefiKindom_QuestRunner
             this.radStatusStrip1.Items.AddRange(new Telerik.WinControls.RadItem[] {
             this.toolStripWalletCount,
             this.commandBarSeparator1,
-            this.lblAppStatus,
             this.toolStripJewelAmount});
             this.radStatusStrip1.Location = new System.Drawing.Point(0, 887);
             this.radStatusStrip1.Name = "radStatusStrip1";
@@ -332,13 +332,6 @@ namespace DefiKindom_QuestRunner
             this.radStatusStrip1.SetSpring(this.commandBarSeparator1, false);
             this.commandBarSeparator1.VisibleInOverflowMenu = false;
             // 
-            // lblAppStatus
-            // 
-            this.lblAppStatus.Name = "lblAppStatus";
-            this.radStatusStrip1.SetSpring(this.lblAppStatus, false);
-            this.lblAppStatus.Text = "Idle";
-            this.lblAppStatus.TextWrap = true;
-            // 
             // toolStripJewelAmount
             // 
             this.toolStripJewelAmount.Name = "toolStripJewelAmount";
@@ -357,6 +350,7 @@ namespace DefiKindom_QuestRunner
             // 
             this.mnuMainMenu.Items.AddRange(new Telerik.WinControls.RadItem[] {
             this.mnuFile,
+            this.mnuView,
             this.mnuWallets,
             this.mnuActions,
             this.mnuAbout});
@@ -365,6 +359,13 @@ namespace DefiKindom_QuestRunner
             this.mnuMainMenu.Size = new System.Drawing.Size(1322, 37);
             this.mnuMainMenu.TabIndex = 4;
             this.mnuMainMenu.ThemeName = "MaterialBlueGrey";
+            // 
+            // mnuView
+            // 
+            this.mnuView.Items.AddRange(new Telerik.WinControls.RadItem[] {
+            this.mnuThemes});
+            this.mnuView.Name = "mnuView";
+            this.mnuView.Text = "&View";
             // 
             // notifyIcon1
             // 
@@ -896,6 +897,11 @@ namespace DefiKindom_QuestRunner
             this.mnuRebuildWalletProfile.Name = "mnuRebuildWalletProfile";
             this.mnuRebuildWalletProfile.Text = "Rebuild Wallet Profile";
             // 
+            // mnuThemes
+            // 
+            this.mnuThemes.Name = "mnuThemes";
+            this.mnuThemes.Text = "radMenuItem1";
+            // 
             // frmConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1023,11 +1029,12 @@ namespace DefiKindom_QuestRunner
         private Telerik.WinControls.UI.RadMenuItem mnuGridActionOnBoardDfk;
         private Telerik.WinControls.UI.RadMenuSeparatorItem radMenuSeparatorItem9;
         private Telerik.WinControls.UI.RadMenuItem mnuGridActionSendJewelTo;
-        private Telerik.WinControls.UI.RadLabelElement lblAppStatus;
         private RadMenuSeparatorItem radMenuSeparatorItem2;
         private RadMenuItem mnuRebuildWalletProfile;
         private Telerik.WinControls.UI.Docking.DocumentWindow docWindowQuestStatusInfo;
         private RadGridView gridQuestInstances;
+        private RadMenuItem mnuView;
+        private RadMenuItem mnuThemes;
     }
 }
 

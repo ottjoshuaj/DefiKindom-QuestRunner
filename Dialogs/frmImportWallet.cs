@@ -33,55 +33,48 @@ namespace DefiKindom_QuestRunner.Dialogs
                 if (txtName.Text.Trim().Length > 0 &&
                     txtPrivateKey.Text.Trim().Length > 0)
                 {
-                    var walletsImported = 0;
-
                     //Attempt to load wallet
                     var existingWallet = WalletManager.ImportWallet(txtPrivateKey.Text.Trim());
                     if (existingWallet != null)
                     {
-                        //Lets get count of wallet to know our new name
-                        var currentWalletCount = WalletManager.GetWallets().Count;
-                        currentWalletCount++;
-
-                        //Lets add all wallet accounts UNDER the main wallet here
-                        foreach (var subAccountAddress in existingWallet.GetAddresses())
+                        if (WalletManager.GetWallet(existingWallet.Address) == null)
                         {
-                            var accountDetails = existingWallet.GetAccount(subAccountAddress);
-                            if (accountDetails != null)
+                            WalletManager.AddWallet(new DfkWallet
                             {
-                                WalletManager.AddWallet(new DfkWallet
-                                {
-                                    Name = $"${txtName.Text} - ${currentWalletCount}",
-                                    Address = accountDetails.Address,
-                                    PrivateKey = accountDetails.PrivateKey,
-                                    PublicKey = accountDetails.PublicKey,
-                                    MnemonicPhrase = txtPrivateKey.Text
-                                });
-                            }
+                                Name = $"${txtName.Text}",
+                                Address = existingWallet.Address,
+                                PrivateKey = existingWallet.PrivateKey,
+                                PublicKey = existingWallet.PublicKey,
+                                MnemonicPhrase = txtPrivateKey.Text
+                            });
 
-                            currentWalletCount++;
-                            walletsImported++;
+
+                            WalletManager.SaveWallets();
+
+                            RadMessageBox.Show($@"Your wallet has been imported",
+                                @"Wallet Imported");
+
+                            Close();
                         }
-
-                        RadMessageBox.Show($@"{walletsImported} Wallet(s)/Account(s) successfully imported!",
-                            @"Wallet Imported");
-
-                        Close();
+                        else
+                        {
+                            RadMessageBox.Show(@"Please check private key!", @"Unable to import wallet!");
+                        }
                     }
                     else
                     {
-                        RadMessageBox.Show(@"Please check your mnemonic words!", @"Unable to import wallet!");
+                        RadMessageBox.Show(@"Please check private key!", @"Unable to import wallet!");
                     }
                 }
                 else
                 {
-                    RadMessageBox.Show(@"You must provide a wallet name and mnemonic words to import!",
+                    RadMessageBox.Show(@"You must provide a wallet name and private key to import!",
                         @"Missing Fields!");
                 }
             }
             catch (Exception ex)
             {
-                RadMessageBox.Show(@"Please check your mnemonic words!", @"Error during import!");
+                RadMessageBox.Show(@"Please check your private key!", @"Error during import!");
             }
 
             Enabled = true;

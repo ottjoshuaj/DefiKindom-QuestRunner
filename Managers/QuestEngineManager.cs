@@ -3,11 +3,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 
-using DefiKindom_QuestRunner.EngineManagers.Engines;
+using DefiKindom_QuestRunner.Managers.Engines;
 using DefiKindom_QuestRunner.Objects;
 
 
-namespace DefiKindom_QuestRunner.EngineManagers
+namespace DefiKindom_QuestRunner.Managers
 {
     internal static class QuestEngineManager
     {

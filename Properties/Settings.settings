@@ -74,5 +74,8 @@
     <Setting Name="LastKnownJewelHolder" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="UXTheme" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Material</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

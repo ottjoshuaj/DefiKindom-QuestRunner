@@ -285,5 +285,17 @@ namespace DefiKindom_QuestRunner.Properties {
                 this["LastKnownJewelHolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Material")]
+        public string UXTheme {
+            get {
+                return ((string)(this["UXTheme"]));
+            }
+            set {
+                this["UXTheme"] = value;
+            }
+        }
     }
 }

@@ -6,13 +6,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DefiKindom_QuestRunner.ApiHandler;
-using DefiKindom_QuestRunner.ApiHandler.Objects;
+
 using Telerik.WinControls;
 using Telerik.WinControls.UI;
+using Telerik.Charting;
 
 using log4net;
 using log4net.Appender;
@@ -21,15 +20,15 @@ using log4net.Repository.Hierarchy;
 
 using PubSub;
 
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
 using DefiKindom_QuestRunner.Dialogs;
-using DefiKindom_QuestRunner.EngineManagers;
-using DefiKindom_QuestRunner.EngineManagers.Engines;
 using DefiKindom_QuestRunner.Helpers;
 using DefiKindom_QuestRunner.Managers;
 using DefiKindom_QuestRunner.Managers.Contracts;
+using DefiKindom_QuestRunner.Managers.Engines;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
-using Telerik.Charting;
 
 namespace DefiKindom_QuestRunner
 {
@@ -90,8 +89,9 @@ namespace DefiKindom_QuestRunner
             Shown += OnShown;
             Resize += OnResize;
             Closing += OnClosing;
-
-            ThemeResolutionService.ApplicationThemeName = "Material";
+            VisibleChanged += OnVisibleChanged;
+            
+            ThemeResolutionService.ApplicationThemeName = Settings.Default.UXTheme;
 
             LoadEventSubscriptions();
 
@@ -144,8 +144,9 @@ namespace DefiKindom_QuestRunner
 
             //gridQuestInstances.VirtualMode = true;
             _tableQuestInstances = new DataTable("questInstances");
-            _tableQuestInstances.Columns.Add("Instance Name");
-            _tableQuestInstances.Columns.Add("Instance Address");
+            _tableQuestInstances.Columns.Add("Id");
+            _tableQuestInstances.Columns.Add("Name");
+            _tableQuestInstances.Columns.Add("Address");
             _tableQuestInstances.Columns.Add("Mode");
             _tableQuestInstances.Columns.Add("Contract Address");
             _tableQuestInstances.Columns.Add("Hero Id");
@@ -158,7 +159,16 @@ namespace DefiKindom_QuestRunner
             gridQuestInstances.AllowSearchRow = true;
             gridQuestInstances.AllowMultiColumnSorting = true;
             gridQuestInstances.EnableSorting = true;
+            gridQuestInstances.AutoSizeColumnsMode = GridViewAutoSizeColumnsMode.None;
             gridQuestInstances.DataSource = _tableQuestInstances;
+            gridQuestInstances.MasterTemplate.BestFitColumns();
+
+            foreach (var col in gridQuestInstances.Columns)
+            {
+                col.HeaderTextAlignment = ContentAlignment.MiddleCenter;
+                col.TextAlignment = ContentAlignment.MiddleCenter;
+            }
+
 
             //Is quest instance running?
             if (QuestEngineManager.GetAllQuestInstances().Count > 0)
@@ -174,8 +184,19 @@ namespace DefiKindom_QuestRunner
 
         private void OnResize(object sender, EventArgs e)
         {
-            if (WindowState == FormWindowState.Minimized && Settings.Default.MinimizeToTray)
-                Hide();
+            switch (WindowState)
+            {
+                case FormWindowState.Maximized:
+                    break;
+
+                case FormWindowState.Minimized:
+                    if (Settings.Default.MinimizeToTray)
+                        Hide();
+                    break;
+
+                case FormWindowState.Normal:
+                    break;
+            }
         }
 
         private async void OnClosing(object sender, CancelEventArgs e)
@@ -188,6 +209,15 @@ namespace DefiKindom_QuestRunner
             QuestEngineManager.KillAllInstances();
 
             AddConsoleMessage($"Quest Instances stopped...");
+        }
+
+        private void OnVisibleChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                //Force scroll of console
+                txtStatusConsole.ScrollToCaret();
+            }
         }
 
         #endregion
@@ -262,6 +292,9 @@ namespace DefiKindom_QuestRunner
             mnuExportWalletDataFile.Click += MnuExportWalletDataFileOnClick;
             mnuPreferences.Click += mnuPreferences_Click;
             mnuViewLogs.Click += mnuViewLogs_Click;
+
+
+            //            //ThemeResolutionService.ApplicationThemeName = Settings.Default.UXTheme;
         }
 
         private void mnuSendOneAndOnboardToDfk_Click(object sender, EventArgs e)
@@ -408,6 +441,9 @@ namespace DefiKindom_QuestRunner
         private void mnuImportExistingWallet_Click(object sender, EventArgs e)
         {
             new frmImportWallet().ShowDialog(this);
+
+            //Refresh grid
+            LoadDataToGrid();
         }
 
         private async void mnuImportWalletDataFile_Click(object sender, EventArgs e)
@@ -560,9 +596,9 @@ namespace DefiKindom_QuestRunner
                 Invoke(new ShowDesktopAlertDelegate(ShowDesktopAlert), noticeEvent);
             else
             {
-                desktopAlert.CaptionText = noticeEvent.IsError ? "ERROR" : "INFO";
-                desktopAlert.ContentText = noticeEvent.Content;
-                desktopAlert.Show();
+                //desktopAlert.CaptionText = noticeEvent.IsError ? "ERROR" : "INFO";
+                //desktopAlert.ContentText = noticeEvent.Content;
+                //desktopAlert.Show();
             }
         }
 
@@ -1027,12 +1063,7 @@ namespace DefiKindom_QuestRunner
             _eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
             {
                 if (jewelInfoEvent.JewelInformation != null)
-                {
-                    //jewelInfoEvent.JewelInformation
-                    AddConsoleMessage($"[Current Jewel Holder:{jewelInfoEvent.JewelInformation.Holder.Address}] => Currently Holds Your Jewels in da sack!");
-
                     HandleJewelProfitUxUpdates(jewelInfoEvent.JewelInformation);
-                }
             });
 
             //Full function subscription handlers
@@ -1051,13 +1082,13 @@ namespace DefiKindom_QuestRunner
                 {
                     for (var i = 0; i < _tableQuestInstances.Rows.Count; i++)
                     {
-                        if (_tableQuestInstances.Rows[i][0].ToString() == evt.WalletAddress)
+                        if (_tableQuestInstances.Rows[i][2].ToString() == evt.WalletAddress)
                         {
-                            _tableQuestInstances.Rows[i][2] = evt.ReadableActivityMode;
-                            _tableQuestInstances.Rows[i][3] = evt.ContractAddress;
-                            _tableQuestInstances.Rows[i][5] = evt.HeroStamina;
-                            _tableQuestInstances.Rows[i][6] = evt.StartedAt;
-                            _tableQuestInstances.Rows[i][7] = evt.CompletesAt;
+                            _tableQuestInstances.Rows[i][3] = evt.ReadableActivityMode;
+                            _tableQuestInstances.Rows[i][4] = evt.ContractAddress;
+                            _tableQuestInstances.Rows[i][6] = evt.HeroStamina;
+                            _tableQuestInstances.Rows[i][7] = evt.StartedAt;
+                            _tableQuestInstances.Rows[i][8] = evt.CompletesAt;
 
                             foundRow = true;
                             break;
@@ -1067,14 +1098,15 @@ namespace DefiKindom_QuestRunner
                     if (!foundRow)
                     {
                         var row = _tableQuestInstances.NewRow();
-                        row[0] = evt.Name;
-                        row[1] = evt.WalletAddress;
-                        row[2] = evt.ReadableActivityMode;
-                        row[3] = evt.ContractAddress;
-                        row[4] = evt.HeroId;
-                        row[5] = evt.HeroStamina;
-                        row[6] = evt.StartedAt;
-                        row[7] = evt.CompletesAt;
+                        row[0] = _tableQuestInstances.Rows.Count + 1;
+                        row[1] = evt.Name;
+                        row[2] = evt.WalletAddress;
+                        row[3] = evt.ReadableActivityMode;
+                        row[4] = evt.ContractAddress;
+                        row[5] = evt.HeroId;
+                        row[6] = evt.HeroStamina;
+                        row[7] = evt.StartedAt;
+                        row[8] = evt.CompletesAt;
                         _tableQuestInstances.Rows.Add(row);
                     }
                 }
@@ -1374,7 +1406,7 @@ namespace DefiKindom_QuestRunner
                 Invoke(new UpdateStatusLabelDelegate(UpdateStatusLabelMessage), text);
             else
             {
-                lblAppStatus.Text = text;
+               
             }
         }
 

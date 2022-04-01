@@ -35,7 +35,6 @@ namespace DefiKindom_QuestRunner.Dialogs
             this.btnImport = new Telerik.WinControls.UI.RadButton();
             this.label3 = new System.Windows.Forms.Label();
             this.txtPrivateKey = new Telerik.WinControls.UI.RadTextBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.materialBlueGreyTheme1 = new Telerik.WinControls.Themes.MaterialBlueGreyTheme();
             this.materialPinkTheme1 = new Telerik.WinControls.Themes.MaterialPinkTheme();
             this.materialTealTheme1 = new Telerik.WinControls.Themes.MaterialTealTheme();
@@ -50,39 +49,41 @@ namespace DefiKindom_QuestRunner.Dialogs
             // 
             this.txtName.Location = new System.Drawing.Point(12, 28);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(282, 20);
+            this.txtName.Size = new System.Drawing.Size(282, 36);
             this.txtName.TabIndex = 0;
+            this.txtName.ThemeName = "Material";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(75, 13);
+            this.label1.Size = new System.Drawing.Size(89, 17);
             this.label1.TabIndex = 1;
             this.label1.Text = "Wallet Name:";
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(175, 265);
+            this.btnImport.Location = new System.Drawing.Point(175, 206);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(119, 38);
             this.btnImport.TabIndex = 2;
             this.btnImport.Text = "Import";
+            this.btnImport.ThemeName = "Material";
             this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 68);
+            this.label3.Location = new System.Drawing.Point(12, 87);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(92, 13);
+            this.label3.Size = new System.Drawing.Size(81, 17);
             this.label3.TabIndex = 6;
-            this.label3.Text = "Recovery Words:";
+            this.label3.Text = "Private Key:";
             // 
             // txtPrivateKey
             // 
-            this.txtPrivateKey.Location = new System.Drawing.Point(12, 87);
+            this.txtPrivateKey.Location = new System.Drawing.Point(12, 107);
             this.txtPrivateKey.Multiline = true;
             this.txtPrivateKey.Name = "txtPrivateKey";
             // 
@@ -91,22 +92,13 @@ namespace DefiKindom_QuestRunner.Dialogs
             this.txtPrivateKey.RootElement.StretchVertically = true;
             this.txtPrivateKey.Size = new System.Drawing.Size(282, 78);
             this.txtPrivateKey.TabIndex = 5;
-            // 
-            // label2
-            // 
-            this.label2.Location = new System.Drawing.Point(13, 172);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(281, 74);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Note: If wallet has multiple accounts under it then they will all be imported. Th" +
-    "ey will take on the provided name along with a number value after it. ";
+            this.txtPrivateKey.ThemeName = "Material";
             // 
             // frmImportWallet
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(312, 334);
-            this.Controls.Add(this.label2);
+            this.ClientSize = new System.Drawing.Size(312, 275);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtPrivateKey);
             this.Controls.Add(this.btnImport);
@@ -124,6 +116,7 @@ namespace DefiKindom_QuestRunner.Dialogs
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "     Import an existing wallet";
+            this.ThemeName = "Material";
             this.Load += new System.EventHandler(this.frmImportWallet_Load);
             ((System.ComponentModel.ISupportInitialize)(this.txtName)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnImport)).EndInit();
@@ -141,7 +134,6 @@ namespace DefiKindom_QuestRunner.Dialogs
         private RadButton btnImport;
         private System.Windows.Forms.Label label3;
         private RadTextBox txtPrivateKey;
-        private System.Windows.Forms.Label label2;
         private Telerik.WinControls.Themes.MaterialBlueGreyTheme materialBlueGreyTheme1;
         private Telerik.WinControls.Themes.MaterialPinkTheme materialPinkTheme1;
         private Telerik.WinControls.Themes.MaterialTealTheme materialTealTheme1;

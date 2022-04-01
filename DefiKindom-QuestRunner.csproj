@@ -387,9 +387,9 @@
     <Compile Include="Dialogs\frmSetApplicationEncryptionKey.Designer.cs">
       <DependentUpon>frmSetApplicationEncryptionKey.cs</DependentUpon>
     </Compile>
-    <Compile Include="EngineManagers\Engines\QuestEngine.cs" />
-    <Compile Include="EngineManagers\Objects\QuestEngineItem.cs" />
-    <Compile Include="EngineManagers\QuestEngineManager.cs" />
+    <Compile Include="Managers\Engines\QuestEngine.cs" />
+    <Compile Include="Managers\Objects\QuestEngineItem.cs" />
+    <Compile Include="Managers\QuestEngineManager.cs" />
     <Compile Include="frmAbout.cs">
       <SubType>Form</SubType>
     </Compile>

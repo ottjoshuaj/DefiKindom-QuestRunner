@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Timers;
-using DefiKindom_QuestRunner.Managers;
+
 using PubSub;
 
 using DefiKindom_QuestRunner.Managers.Contracts;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
 
-namespace DefiKindom_QuestRunner.EngineManagers.Engines
+namespace DefiKindom_QuestRunner.Managers.Engines
 {
     internal class QuestEngine : IDisposable
     {
@@ -76,8 +76,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
         //Self managing wallet mining, returning to mine , cancel, etc
         public async void Start()
         {
-            await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting));
-
             //Build Timer
             timerCheckInstanceStatus = new Timer(Settings.Default.QuestInstanceMsInterval);
             timerCheckInstanceStatus.Elapsed += TimerCheckInstanceStatusOnElapsed;
@@ -101,8 +99,14 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                         CompletesAt = null
                     });
 
+                    //Signal instance starting
+                    await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting));
+
                     //Jewel Request went out. No sense in loop till we actually get hold of the Jewel
                     timerCheckInstanceStatus.Enabled = false;
+
+                    //Start Timer
+                    timerCheckInstanceStatus.Start();
                     break;
 
                 default:
@@ -110,9 +114,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                     timerCheckInstanceStatus.Enabled = true;
                     break;
             }
-
-            //Start Timer
-            timerCheckInstanceStatus.Start();
         }
 
         public async void Stop()
@@ -146,7 +147,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                 _hasTheJewel = false;
 
                 //Instance is done with the jewel. Enable timer so it can continue where it needs
-                timerCheckInstanceStatus.Enabled = true;
+                TimerCheckInstanceStatusOnElapsed(null, null);
             }
         }
 
@@ -156,7 +157,8 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
         private async void TimerCheckInstanceStatusOnElapsed(object sender, ElapsedEventArgs e)
         {
-            timerCheckInstanceStatus.Enabled = false;
+            if (timerCheckInstanceStatus != null)
+                timerCheckInstanceStatus.Enabled = false;
 
             try
             {
@@ -249,9 +251,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 }
                             }
                         }
-
-                        if (timerCheckInstanceStatus != null)
-                            timerCheckInstanceStatus.Enabled = true;
                         break;
 
                     //We've quested, canceled, and waiting on stamina to start again!
@@ -264,9 +263,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                         //Available stam > 15. Lets move to quest mode
                         if (DfkWallet.AssignedHeroStamina >= 15)
                             QuestCurrentMode = QuestActivityMode.WantsToQuest;
-
-                        if(timerCheckInstanceStatus != null)
-                            timerCheckInstanceStatus.Enabled = true;
                         break;
 
 
@@ -283,9 +279,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 {
                                     //Prior contract call finally executed. Update app telling it to move into stamina mode
                                     QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
-
-                                    if (timerCheckInstanceStatus != null)
-                                        timerCheckInstanceStatus.Enabled = true;
                                     break;
                                 }
                             }
@@ -313,17 +306,8 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 WalletManager.SaveWallets();
 
                                 _hasTheJewel = false;
-
-                                if (timerCheckInstanceStatus != null)
-                                    timerCheckInstanceStatus.Enabled = true;
                             }
-                            else
-                            if (timerCheckInstanceStatus != null)
-                                timerCheckInstanceStatus.Enabled = true;
                         }
-                        else
-                        if (timerCheckInstanceStatus != null)
-                            timerCheckInstanceStatus.Enabled = true;
                         break;
 
 
@@ -340,9 +324,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 {
                                     //Prior contract call finally executed. Update app telling it to move into stamina mode
                                     QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
-
-                                    if (timerCheckInstanceStatus != null)
-                                        timerCheckInstanceStatus.Enabled = true;
                                     break;
                                 }
                             }
@@ -368,18 +349,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 WalletManager.SaveWallets();
 
                                 _hasTheJewel = false;
-
-                                if (timerCheckInstanceStatus != null)
-                                    timerCheckInstanceStatus.Enabled = true;
                             }
-                            else
-                            if (timerCheckInstanceStatus != null)
-                                timerCheckInstanceStatus.Enabled = true;
-                        }
-                        else
-                        {
-                            if (timerCheckInstanceStatus != null)
-                                timerCheckInstanceStatus.Enabled = true;
                         }
                         break;
 
@@ -404,9 +374,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                     JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
 
                                     eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Already Questing (Jewel Request Canceled)" });
-
-                                    if (timerCheckInstanceStatus != null)
-                                        timerCheckInstanceStatus.Enabled = true;
                                 }
                                 else
                                 {
@@ -435,9 +402,6 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                                 questState;
                                             WalletManager.SaveWallets();   
                                         }
-
-                                        if (timerCheckInstanceStatus != null)
-                                            timerCheckInstanceStatus.Enabled = true;
                                     }
                                     else
                                     {
@@ -492,22 +456,9 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                                 }
                                             }
                                         }
-
-                                        if (timerCheckInstanceStatus != null)
-                                            timerCheckInstanceStatus.Enabled = true;
                                     }
                                 }
                             }
-                            else
-                            {
-                                if (timerCheckInstanceStatus != null)
-                                    timerCheckInstanceStatus.Enabled = true;
-                            }
-                        }
-                        else
-                        {
-                            if (timerCheckInstanceStatus != null)
-                                timerCheckInstanceStatus.Enabled = true;
                         }
                         break;
                 }
@@ -516,6 +467,10 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
             {
 
             }
+
+
+            if (timerCheckInstanceStatus != null)
+                timerCheckInstanceStatus.Enabled = true;
         }
 
         #endregion

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 
-using DefiKindom_QuestRunner.EngineManagers.Engines;
+using DefiKindom_QuestRunner.Managers.Engines;
 
-namespace DefiKindom_QuestRunner.EngineManagers
+namespace DefiKindom_QuestRunner.Managers
 {
     internal class QuestEngineItem
     {
