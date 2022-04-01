@@ -618,12 +618,10 @@ namespace DefiKindom_QuestRunner.Managers
             IEnumerable<DfkWallet> instancesToOnBoard;
 
             lock (Wallets)
-                instancesToOnBoard = Wallets.Where(wallet => wallet.AssignedHero > 0 && wallet.HasDkProfile).ToList();
+                instancesToOnBoard = Wallets.Where(wallet => wallet.HasDkProfile).ToList();
 
             foreach (var wallet in instancesToOnBoard)
             {
-                instancesStarted++;
-
                 //Check Hero Stamina and current quest status
                 wallet.AssignedHeroQuestStatus = await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
                 wallet.AssignedHeroStamina =
@@ -667,6 +665,8 @@ namespace DefiKindom_QuestRunner.Managers
                                 $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing)"
                         });
                     }
+
+                    instancesStarted++;
                 }
                 else
                 {
@@ -678,36 +678,38 @@ namespace DefiKindom_QuestRunner.Managers
                     var heroesOnAccount = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
                     if (heroesOnAccount != null)
                     {
+                        instancesStarted++;
+
                         var firstHeroInList = heroesOnAccount.FirstOrDefault();
 
                         //Just ensure account is set
                         wallet.AssignedHero = firstHeroInList;
                         wallet.AssignedHeroStamina =
                             await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
-                    }
 
-                    //Wallet isnt questing. Is there enough stamina ?
-                    if (wallet.AssignedHeroStamina >= 15)
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.WantsToQuest));
-
-                        await eventHub.PublishAsync(new MessageEvent
+                        //Wallet isnt questing. Is there enough stamina ?
+                        if (wallet.AssignedHeroStamina >= 15)
                         {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
-                        });
-                    }
-                    else
-                    {
-                        QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
-                            QuestEngine.QuestActivityMode.WaitingOnStamina));
+                            QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                                QuestEngine.QuestActivityMode.WantsToQuest));
 
-                        await eventHub.PublishAsync(new MessageEvent
+                            await eventHub.PublishAsync(new MessageEvent
+                            {
+                                Content =
+                                    $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
+                            });
+                        }
+                        else
                         {
-                            Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
-                        });
+                            QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
+                                QuestEngine.QuestActivityMode.WaitingOnStamina));
+
+                            await eventHub.PublishAsync(new MessageEvent
+                            {
+                                Content =
+                                    $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
+                            });
+                        }
                     }
                 }
             }
