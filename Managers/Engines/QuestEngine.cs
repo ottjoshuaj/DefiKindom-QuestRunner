@@ -74,8 +74,10 @@ namespace DefiKindom_QuestRunner.Managers.Engines
         #region Public Methods
 
         //Self managing wallet mining, returning to mine , cancel, etc
-        public async void Start()
+        public void Start()
         {
+            eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting));
+
             //Build Timer
             timerCheckInstanceStatus = new Timer(Settings.Default.QuestInstanceMsInterval);
             timerCheckInstanceStatus.Elapsed += TimerCheckInstanceStatusOnElapsed;
@@ -86,8 +88,8 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                 case QuestActivityMode.WantsToCompleteQuest:
                 case QuestActivityMode.WantsToCancelQuest:
                 case QuestActivityMode.WantsToQuest:
-                    await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
-                    await eventHub.PublishAsync(new WalletQuestStatusEvent
+                    eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
+                    eventHub.PublishAsync(new WalletQuestStatusEvent
                     {
                         Name = DfkWallet.Name,
                         CurrentActivityMode = QuestCurrentMode,
@@ -99,14 +101,8 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                         CompletesAt = null
                     });
 
-                    //Signal instance starting
-                    await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet, WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting));
-
                     //Jewel Request went out. No sense in loop till we actually get hold of the Jewel
                     timerCheckInstanceStatus.Enabled = false;
-
-                    //Start Timer
-                    timerCheckInstanceStatus.Start();
                     break;
 
                 default:
@@ -114,6 +110,9 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                     timerCheckInstanceStatus.Enabled = true;
                     break;
             }
+
+            //Start Timer
+            timerCheckInstanceStatus.Start();
         }
 
         public async void Stop()

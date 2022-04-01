@@ -632,14 +632,11 @@ namespace DefiKindom_QuestRunner.Managers
                 //Wallet is already questing 
                 if (wallet.IsQuesting)
                 {
-                    //Get hero questing on account
-                    var heroQuesting = wallet.AssignedHeroQuestStatus.HeroesOnQuest.FirstOrDefault();
+                    //Make sure appropriate hero questing is set
+                    wallet.AssignedHero = wallet.AssignedHeroQuestStatus.HeroesOnQuest.FirstOrDefault();
 
                     if (wallet.QuestNeedsCompleted)
                     {
-                        //Make sure appropriate hero questing is set
-                        wallet.AssignedHero = heroQuesting;
-
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCompleteQuest));
 
@@ -650,9 +647,6 @@ namespace DefiKindom_QuestRunner.Managers
                         });
                     } else if (wallet.QuestNeedsCanceled)
                     {
-                        //Make sure appropriate hero questing is set
-                        wallet.AssignedHero = heroQuesting;
-
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCancelQuest));
 
@@ -664,9 +658,6 @@ namespace DefiKindom_QuestRunner.Managers
                     }
                     else
                     {
-                        //Make sure appropriate hero questing is set
-                        wallet.AssignedHero = heroQuesting;
-
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.Questing));
 
