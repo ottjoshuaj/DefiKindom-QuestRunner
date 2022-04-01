@@ -95,18 +95,6 @@ namespace DefiKindom_QuestRunner.Managers
             MonitorIsReady = true;
         }
 
-        #endregion
-
-        #region Event Subscriptions
-
-        private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
-        {
-            _timerToCheckWhoNextGetsJewel.Enabled = true;
-            _timerToCheckWhoNextGetsJewel.Start();
-
-            await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager (All Instances Loaded to Queue)...." });
-        }
-
         public static void InstanceJewelEvent(NeedJewelEvent instance)
         {
             switch (instance.RequestType)
@@ -118,11 +106,7 @@ namespace DefiKindom_QuestRunner.Managers
                         //Was wallet instance already in list? No sense in double adding!
                         if (WalletsNeedingJewel.All(x =>
                                 x.Wallet.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
-                        {
                             WalletsNeedingJewel.Add(new WalletsThatNeedJewel(instance.Wallet, instance.QuestActivityMode));
-
-                            EventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Wants the jewel...(Queued)." });
-                        }
                     }
                     break;
 
@@ -132,18 +116,26 @@ namespace DefiKindom_QuestRunner.Managers
                     lock (WalletsNeedingJewel)
                     {
                         //Wallet is DONE with the jewel, make sure wallet is in the queue list and remove it
-                        var walletToRemove = WalletsNeedingJewel.FirstOrDefault(x=>x.Wallet.Address == instance.Wallet.Address);
+                        var walletToRemove = WalletsNeedingJewel.FirstOrDefault(x => x.Wallet.Address == instance.Wallet.Address);
                         if (walletToRemove != null)
-                        {
-                            EventHub.PublishAsync(new MessageEvent { Content = $"[Wallet:{instance.Wallet.Name} => {instance.Wallet.Address}] => Is Finished With Jewel...(Removed from Queue)." });
-
                             WalletsNeedingJewel.Remove(walletToRemove);
-                        }
                     }
 
                     _jewelIsBusy = false;
                     break;
             }
+        }
+
+        #endregion
+
+        #region Event Subscriptions
+
+        private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
+        {
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Start();
+
+            await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager (All Instances Loaded to Queue)...." });
         }
 
         private static void PreferencesEventHandler(PreferenceUpdateEvent evt)

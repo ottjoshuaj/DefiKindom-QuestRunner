@@ -1132,11 +1132,11 @@ namespace DefiKindom_QuestRunner
                 }
                 else
                 {
-                    var formatTotalJewel = $"{_startingJewelAmount:0.####}";
                     var jewelProfit = (jewelInfo.Balance - _startingJewelAmount);
                     var formatRecentProfitJewel = $"{jewelProfit:0.####}";
+                    var newTotal = $"{jewelInfo.Balance:0.####}";
 
-                    toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{formatTotalJewel})";
+                    toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{newTotal})";
                 }
 
                 LoadDataToGrid();
