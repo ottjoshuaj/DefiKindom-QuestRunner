@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
 
 using Telerik.WinControls;
@@ -23,6 +24,7 @@ using PubSub;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
 using DefiKindom_QuestRunner.Dialogs;
+using DefiKindom_QuestRunner.Discord;
 using DefiKindom_QuestRunner.Helpers;
 using DefiKindom_QuestRunner.Managers;
 using DefiKindom_QuestRunner.Managers.Contracts;
@@ -52,10 +54,16 @@ namespace DefiKindom_QuestRunner
 
         #region Internals
 
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private DataTable _tableQuestInstances;
-        private decimal _startingJewelAmount = 0;
+        private readonly DiscordBot discordBot = new DiscordBot();
+        readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         readonly Hub _eventHub = Hub.Default;
+
+        private DataTable _tableQuestInstances;
+        private System.Timers.Timer _timerJewelTotalCheck;
+
+        private decimal _startingJewelAmount = 0;
+        private decimal _currentJewelProfit = 0;
+        private decimal _currentJewelTotal = 0;
 
         #endregion
 
@@ -157,10 +165,14 @@ namespace DefiKindom_QuestRunner
             gridQuestInstances.AutoGenerateColumns = true;
             gridQuestInstances.ReadOnly = true;
             gridQuestInstances.AllowSearchRow = true;
-            gridQuestInstances.AllowMultiColumnSorting = true;
+            gridQuestInstances.AllowMultiColumnSorting = false;
             gridQuestInstances.EnableSorting = true;
-            gridQuestInstances.AutoSizeColumnsMode = GridViewAutoSizeColumnsMode.None;
+            gridQuestInstances.EnableGrouping = true;
+            gridQuestInstances.ShowGroupPanel = true;
+            gridQuestInstances.ShowGroupedColumns = true;
+            gridQuestInstances.AutoSizeColumnsMode = GridViewAutoSizeColumnsMode.Fill;
             gridQuestInstances.DataSource = _tableQuestInstances;
+
             gridQuestInstances.MasterTemplate.BestFitColumns();
 
             foreach (var col in gridQuestInstances.Columns)
@@ -169,17 +181,22 @@ namespace DefiKindom_QuestRunner
                 col.TextAlignment = ContentAlignment.MiddleCenter;
             }
 
-
             //Is quest instance running?
             if (QuestEngineManager.GetAllQuestInstances().Count > 0)
             {
                 mnuGridActionSendJewelTo.Enabled = false;
             }
+
+            //Setup Discord Bot Timer (sends info to discord channel)
+            _timerJewelTotalCheck = new System.Timers.Timer(3600000);
+            _timerJewelTotalCheck.Elapsed += TimerJewelTotalCheckOnElapsed;
+            _timerJewelTotalCheck.Enabled = true;
+            _timerJewelTotalCheck.Start();
         }
 
         private async void OnShown(object sender, EventArgs e)
         {
-
+            await discordBot.Start();
         }
 
         private void OnResize(object sender, EventArgs e)
@@ -1040,25 +1057,7 @@ namespace DefiKindom_QuestRunner
 
             _eventHub.Subscribe<NotificationEvent>(this, ShowDesktopAlert);
 
-            _eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, msgEvent =>
-            {
-                switch (msgEvent.OnQuestMessageEventType)
-                {
-                    case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing:
-                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Started Questing....");
-                        break;
-
-                    case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingCanceled:
-                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Canceled Questing....");
-                        break;
-
-                    case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.QuestingComplete:
-                        AddConsoleMessage($"[Wallet {msgEvent.Wallet.Name} => {msgEvent.Wallet.Address}] => Completed Questing....");
-                        break;
-                }
-
-                UpdateChartInformation(msgEvent);
-            });
+            _eventHub.Subscribe<WalletsOnQuestsMessageEvent>(this, UpdateChartInformation);
 
             _eventHub.Subscribe<JewelInformationEvent>(this, jewelInfoEvent =>
             {
@@ -1078,35 +1077,37 @@ namespace DefiKindom_QuestRunner
             else
             {
                 var foundRow = false;
+                var currentRowCount = gridQuestInstances.RowCount + 1;
+
                 lock (_tableQuestInstances)
                 {
                     for (var i = 0; i < _tableQuestInstances.Rows.Count; i++)
                     {
-                        if (_tableQuestInstances.Rows[i][2].ToString() == evt.WalletAddress)
-                        {
-                            _tableQuestInstances.Rows[i][3] = evt.ReadableActivityMode;
-                            _tableQuestInstances.Rows[i][4] = evt.ContractAddress;
-                            _tableQuestInstances.Rows[i][6] = evt.HeroStamina;
-                            _tableQuestInstances.Rows[i][7] = evt.StartedAt;
-                            _tableQuestInstances.Rows[i][8] = evt.CompletesAt;
+                        if (_tableQuestInstances.Rows[i][2].ToString() != evt.WalletAddress) continue;
 
-                            foundRow = true;
-                            break;
-                        }
+                        _tableQuestInstances.Rows[i][3] = evt.ReadableActivityMode;
+                        _tableQuestInstances.Rows[i][4] = evt.ContractAddress != "0x0000000000000000000000000000000000000000" ? evt.ContractAddress : "";
+                        _tableQuestInstances.Rows[i][5] = evt.HeroId;
+                        _tableQuestInstances.Rows[i][6] = evt.HeroStamina;
+                        _tableQuestInstances.Rows[i][7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
+                        _tableQuestInstances.Rows[i][8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
+
+                        foundRow = true;
+                        break;
                     }
 
                     if (!foundRow)
                     {
                         var row = _tableQuestInstances.NewRow();
-                        row[0] = _tableQuestInstances.Rows.Count + 1;
+                        row[0] = currentRowCount;
                         row[1] = evt.Name;
                         row[2] = evt.WalletAddress;
                         row[3] = evt.ReadableActivityMode;
-                        row[4] = evt.ContractAddress;
+                        row[4] = evt.ContractAddress != "0x0000000000000000000000000000000000000000" ? evt.ContractAddress : "";
                         row[5] = evt.HeroId;
                         row[6] = evt.HeroStamina;
-                        row[7] = evt.StartedAt;
-                        row[8] = evt.CompletesAt;
+                        row[7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
+                        row[8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
                         _tableQuestInstances.Rows.Add(row);
                     }
                 }
@@ -1157,18 +1158,24 @@ namespace DefiKindom_QuestRunner
                 if (_startingJewelAmount == 0)
                 {
                     _startingJewelAmount = jewelInfo.Balance;
+                    _currentJewelTotal = jewelInfo.Balance;
 
                     var formatTotalJewel = $"{_startingJewelAmount:0.####}";
 
                     toolStripJewelAmount.Text = $@"Jewel Earned (0/{formatTotalJewel})";
+
+                    //Lets trigger a notice to discord
+                    TimerJewelTotalCheckOnElapsed(null, null);
                 }
                 else
                 {
-                    var jewelProfit = (jewelInfo.Balance - _startingJewelAmount);
-                    var formatRecentProfitJewel = $"{jewelProfit:0.####}";
+                    _currentJewelProfit = (jewelInfo.Balance - _startingJewelAmount);
+                    _currentJewelTotal = jewelInfo.Balance;
+
+                    var formatRecentProfitJewel = $"{_currentJewelProfit:0.####}";
                     var newTotal = $"{jewelInfo.Balance:0.####}";
 
-                    toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{newTotal})";
+                    toolStripJewelAmount.Text = _currentJewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{newTotal})";
                 }
 
                 LoadDataToGrid();
@@ -1443,6 +1450,24 @@ namespace DefiKindom_QuestRunner
         {
             foreach (var item in mnuGridAction.Items)
                 item.Enabled = visible;
+        }
+
+        #endregion
+
+        #region Discord Bot Management
+
+        private async void TimerJewelTotalCheckOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                var msgToSend = $"Current JEWEL Profits: {_currentJewelProfit:0.####}.  Total: {_currentJewelTotal:0.####} JEWEL";
+
+                await discordBot.SendMessage(msgToSend);
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         #endregion

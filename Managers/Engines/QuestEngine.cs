@@ -169,8 +169,8 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                     WalletAddress = DfkWallet.Address,
                     Name = DfkWallet.Name,
                     ContractAddress = DfkWallet.AssignedHeroQuestStatus != null ? DfkWallet.AssignedHeroQuestStatus.ContractAddress : "",
-                    StartedAt = DfkWallet.AssignedHeroQuestStatus?.QuestStartedAt,
-                    CompletesAt = DfkWallet.AssignedHeroQuestStatus?.QuestCompletesAt,
+                    StartedAt = DfkWallet.IsQuesting ? DfkWallet.AssignedHeroQuestStatus?.QuestStartedAt : null,
+                    CompletesAt = DfkWallet.IsQuesting ? DfkWallet.AssignedHeroQuestStatus?.QuestCompletesAt : null,
                 });
 
                 switch (QuestCurrentMode)
@@ -261,7 +261,11 @@ namespace DefiKindom_QuestRunner.Managers.Engines
 
                         //Available stam > 15. Lets move to quest mode
                         if (DfkWallet.AssignedHeroStamina >= 15)
+                        {
                             QuestCurrentMode = QuestActivityMode.WantsToQuest;
+
+                            await eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Has 15+ Stamina..Wants to Quest!..." });
+                        }
                         break;
 
 
