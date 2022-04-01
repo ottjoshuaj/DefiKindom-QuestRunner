@@ -91,10 +91,14 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                     await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
                     await eventHub.PublishAsync(new WalletQuestStatusEvent
                     {
+                        Name = DfkWallet.Name,
                         CurrentActivityMode = QuestCurrentMode,
                         HeroStamina = DfkWallet.AssignedHeroStamina,
                         HeroId = DfkWallet.AssignedHero,
-                        WalletAddress = DfkWallet.Address
+                        WalletAddress = DfkWallet.Address,
+                        ContractAddress = "",
+                        StartedAt = null,
+                        CompletesAt = null
                     });
 
                     //Jewel Request went out. No sense in loop till we actually get hold of the Jewel
@@ -161,7 +165,11 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                     CurrentActivityMode = QuestCurrentMode,
                     HeroStamina = DfkWallet.AssignedHeroStamina,
                     HeroId = DfkWallet.AssignedHero,
-                    WalletAddress = DfkWallet.Address
+                    WalletAddress = DfkWallet.Address,
+                    Name = DfkWallet.Name,
+                    ContractAddress = DfkWallet.AssignedHeroQuestStatus != null ? DfkWallet.AssignedHeroQuestStatus.ContractAddress : "",
+                    StartedAt = DfkWallet.AssignedHeroQuestStatus?.QuestStartedAt,
+                    CompletesAt = DfkWallet.AssignedHeroQuestStatus?.QuestCompletesAt,
                 });
 
                 switch (QuestCurrentMode)

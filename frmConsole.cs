@@ -144,14 +144,20 @@ namespace DefiKindom_QuestRunner
 
             //gridQuestInstances.VirtualMode = true;
             _tableQuestInstances = new DataTable("questInstances");
-            _tableQuestInstances.Columns.Add("WalletAddress");
-            _tableQuestInstances.Columns.Add("ReadableActivityMode");
-            _tableQuestInstances.Columns.Add("HeroId");
+            _tableQuestInstances.Columns.Add("Instance Name");
+            _tableQuestInstances.Columns.Add("Instance Address");
+            _tableQuestInstances.Columns.Add("Mode");
+            _tableQuestInstances.Columns.Add("Contract Address");
+            _tableQuestInstances.Columns.Add("Hero Id");
             _tableQuestInstances.Columns.Add("HeroStamina");
+            _tableQuestInstances.Columns.Add("Started At");
+            _tableQuestInstances.Columns.Add("Completes At");
 
             gridQuestInstances.AutoGenerateColumns = true;
             gridQuestInstances.ReadOnly = true;
-            gridQuestInstances.AllowSearchRow = false;
+            gridQuestInstances.AllowSearchRow = true;
+            gridQuestInstances.AllowMultiColumnSorting = true;
+            gridQuestInstances.EnableSorting = true;
             gridQuestInstances.DataSource = _tableQuestInstances;
 
             //Is quest instance running?
@@ -1034,7 +1040,6 @@ namespace DefiKindom_QuestRunner
             _eventHub.Subscribe<WalletQuestStatusEvent>(UpdateGridQuestStatusInfo);
         }
 
-
         void UpdateGridQuestStatusInfo(WalletQuestStatusEvent evt)
         {
             if (InvokeRequired)
@@ -1048,8 +1053,11 @@ namespace DefiKindom_QuestRunner
                     {
                         if (_tableQuestInstances.Rows[i][0].ToString() == evt.WalletAddress)
                         {
-                            _tableQuestInstances.Rows[i][1] = evt.ReadableActivityMode;
-                            _tableQuestInstances.Rows[i][3] = evt.HeroStamina;
+                            _tableQuestInstances.Rows[i][2] = evt.ReadableActivityMode;
+                            _tableQuestInstances.Rows[i][3] = evt.ContractAddress;
+                            _tableQuestInstances.Rows[i][5] = evt.HeroStamina;
+                            _tableQuestInstances.Rows[i][6] = evt.StartedAt;
+                            _tableQuestInstances.Rows[i][7] = evt.CompletesAt;
 
                             foundRow = true;
                             break;
@@ -1059,10 +1067,14 @@ namespace DefiKindom_QuestRunner
                     if (!foundRow)
                     {
                         var row = _tableQuestInstances.NewRow();
-                        row[0] = evt.WalletAddress;
-                        row[1] = evt.ReadableActivityMode;
-                        row[2] = evt.HeroId;
-                        row[3] = evt.HeroStamina;
+                        row[0] = evt.Name;
+                        row[1] = evt.WalletAddress;
+                        row[2] = evt.ReadableActivityMode;
+                        row[3] = evt.ContractAddress;
+                        row[4] = evt.HeroId;
+                        row[5] = evt.HeroStamina;
+                        row[6] = evt.StartedAt;
+                        row[7] = evt.CompletesAt;
                         _tableQuestInstances.Rows.Add(row);
                     }
                 }
@@ -1121,9 +1133,10 @@ namespace DefiKindom_QuestRunner
                 else
                 {
                     var formatTotalJewel = $"{_startingJewelAmount:0.####}";
-
                     var jewelProfit = (jewelInfo.Balance - _startingJewelAmount);
-                    toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({jewelProfit}/{formatTotalJewel})";
+                    var formatRecentProfitJewel = $"{jewelProfit:0.####}";
+
+                    toolStripJewelAmount.Text = jewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{formatTotalJewel})";
                 }
 
                 LoadDataToGrid();
