@@ -11,6 +11,7 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 using DefiKindom_QuestRunner.Properties;
+using Nethereum.Signer;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
@@ -194,7 +195,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                     return response.Success;
 
                 /*
-                var web3 = new Web3(source, Settings.Default.CurrentRpcUrl)
+                var web3 = new Web3(walletAccount, Settings.Default.CurrentRpcUrl)
                 {
                     TransactionManager =
                     {
@@ -208,11 +209,13 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
                 var gas = new HexBigInteger(new BigInteger(400000));
                 var value = new HexBigInteger(new BigInteger(0));
-                var transaction = contract.GetFunction("transferFrom").SendTransactionAsync(source.Address, gas, value, destination.Address);
+
+                var transaction = contract.GetFunction("transferFrom").SendTransactionAsync(source.Address, gas, value, source.Address, destination.Address, heroId);
                 transaction.Wait();
 
                 return true;
                 */
+
             }
             catch (Exception ex)
             {

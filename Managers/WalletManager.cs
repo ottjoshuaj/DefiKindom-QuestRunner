@@ -669,6 +669,9 @@ namespace DefiKindom_QuestRunner.Managers
                 }
                 else
                 {
+                    //Since we're not questing lets just erase it and can repopulate once we STARt questing again
+                    wallet.AssignedHeroQuestStatus = null;
+
                     //Wallet isnt questing. Is there enough stamina ?
                     if (wallet.AssignedHeroStamina >= 15)
                     {
@@ -695,6 +698,8 @@ namespace DefiKindom_QuestRunner.Managers
                 }
             }
 
+            //Update wallet data file
+            SaveWallets();
 
             return instancesStarted;
         }

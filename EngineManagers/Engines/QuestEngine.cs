@@ -17,6 +17,8 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
         Hub eventHub = Hub.Default;
         private Timer timerCheckInstanceStatus;
         private bool _hasTheJewel;
+        private int _failedToStartQuestTimes;
+        private bool _needsRefreshQuestStatus = true;
 
         #endregion
 
@@ -166,46 +168,78 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                 {
                     //We know 100% we're questing, now we must determine if its time to CANCEL!
                     case QuestActivityMode.Questing:
-                        //Compare start time to now. If time >= 155 minutes then we must move to CANCEL event
-                        if (DfkWallet.ReadyToWork && DfkWallet.AssignedHeroQuestStatus != null &&
-                            DfkWallet.AssignedHeroQuestStatus.IsQuesting)
+                        //We're marked as questing, but are we really?
+                        if (DfkWallet.IsQuesting)
                         {
-                            DfkWallet.AssignedHeroStamina = await
-                                new QuestContractHandler().GetHeroStamina(DfkWallet.WalletAccount,
-                                    DfkWallet.AssignedHero);
-
-                            //How much stamina has been used?. Determine MAX Stam - current = how much has been used. If >= 15 time to cancel
-                            var heroProfile =
-                                DfkWallet.HeroProfiles.FirstOrDefault(x => x.Id == DfkWallet.AssignedHero);
-                            if (heroProfile != null)
+                            //Get Quest Status
+                            if (DfkWallet.AssignedHeroQuestStatus == null)
                             {
-                                var staminaUsed = (heroProfile.Stats.Stamina - DfkWallet.AssignedHeroStamina);
-                                if (staminaUsed >= 15)
+                                var questState =
+                                    await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
+                                        DfkWallet.AssignedHero);
+                                if (questState != null)
                                 {
-                                    //Tell the system we want to cancel and we need the jewel
-                                    QuestCurrentMode = QuestActivityMode.WantsToCancelQuest;
+                                    //Save state
+                                    DfkWallet.AssignedHeroQuestStatus = questState;
 
-                                    //Lets tell jewel manager we need the jewel
-                                    JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet,
-                                        NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
-
-                                    //await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
-
-                                    if (timerCheckInstanceStatus != null)
-                                        timerCheckInstanceStatus.Enabled = true;
+                                    //Save and Save State
+                                    WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus =
+                                        questState;
+                                    WalletManager.SaveWallets();
                                 }
-                                else
-                                if (timerCheckInstanceStatus != null)
-                                    timerCheckInstanceStatus.Enabled = true;
                             }
-                            else
-                            if (timerCheckInstanceStatus != null)
-                                timerCheckInstanceStatus.Enabled = true;
+
+                            if (DfkWallet.QuestNeedsCompleted)
+                            {
+                                //Tell the system we want to cancel and we need the jewel
+                                QuestCurrentMode = QuestActivityMode.WantsToCompleteQuest;
+
+                                //Lets tell jewel manager we need the jewel
+                                JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet,
+                                    NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
+                            }
+                            else if (DfkWallet.QuestNeedsCanceled)
+                            {
+                                //Tell the system we want to cancel and we need the jewel
+                                QuestCurrentMode = QuestActivityMode.WantsToCancelQuest;
+
+                                //Lets tell jewel manager we need the jewel
+                                JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet,
+                                    NeedJewelEvent.JewelEventRequestTypes.NeedJewel, QuestCurrentMode));
+                            }
                         }
                         else
+                        {
+                            if (_needsRefreshQuestStatus)
+                            {
+                                //Lets double check quest status
+                                var questStatus =
+                                    await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
+                                        DfkWallet.AssignedHero);
+                                if (questStatus != null)
+                                {
+                                    _needsRefreshQuestStatus = false;
+
+                                    DfkWallet.AssignedHeroQuestStatus = questStatus;
+
+                                    WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus = questStatus;
+                                    WalletManager.SaveWallets();
+
+                                    //Ok ARE WE REALLY Questing? 
+                                    if (!DfkWallet.IsQuesting)
+                                    {
+                                        QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
+
+                                        //Tell system your not questing now
+                                        await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
+                                            WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.WaitingOnStamina));
+                                    }
+                                }
+                            }
+                        }
+
                         if (timerCheckInstanceStatus != null)
                             timerCheckInstanceStatus.Enabled = true;
-
                         break;
 
                     //We've quested, canceled, and waiting on stamina to start again!
@@ -217,9 +251,7 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
                         //Available stam > 15. Lets move to quest mode
                         if (DfkWallet.AssignedHeroStamina >= 15)
-                        {
                             QuestCurrentMode = QuestActivityMode.WantsToQuest;
-                        }
 
                         if(timerCheckInstanceStatus != null)
                             timerCheckInstanceStatus.Enabled = true;
@@ -263,8 +295,9 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet,
                                     NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
 
-                                //await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet,
-                                //    NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
+                                WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus = null;
+                                WalletManager.SaveWallets();
+
                                 _hasTheJewel = false;
 
                                 if (timerCheckInstanceStatus != null)
@@ -315,10 +348,10 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
                                 //Lets tell jewel manager we're done (only if we succesfully canceled quest contract)
                                 JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
 
-                                //await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet,
-                                //    NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
-                                _hasTheJewel = false;
+                                WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus = null;
+                                WalletManager.SaveWallets();
 
+                                _hasTheJewel = false;
 
                                 if (timerCheckInstanceStatus != null)
                                     timerCheckInstanceStatus.Enabled = true;
@@ -374,13 +407,71 @@ namespace DefiKindom_QuestRunner.EngineManagers.Engines
 
                                         //Lets tell jewel manager we're done (only if we succesfully started quest contract)
                                         JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
-                                        //await eventHub.PublishAsync(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
+                                        
+                                        //Since we create quest. Letts get the info about it
+                                        var questState = await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount, DfkWallet.AssignedHero);
+                                        if (questState != null)
+                                        {
+                                            WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus =
+                                                questState;
+                                            WalletManager.SaveWallets();   
+                                        }
 
                                         if (timerCheckInstanceStatus != null)
                                             timerCheckInstanceStatus.Enabled = true;
                                     }
                                     else
                                     {
+                                        _failedToStartQuestTimes++;
+
+                                        if (_failedToStartQuestTimes >= 2)
+                                        {
+                                            //Ok so why are we failing?  Maybe the assigned hero is no longer with us?
+                                            //Get hero list for wallet
+                                            var heroesInWallet =
+                                                await new HeroContractHandler().GetWalletHeroes(DfkWallet.WalletAccount);
+                                            if (heroesInWallet.Count > 0)
+                                            {
+                                                if (!heroesInWallet.Contains(DfkWallet.AssignedHero))
+                                                {
+                                                    //Shit, our hero was swiped!  Set our AssignedHero as our current hero
+                                                    DfkWallet.AssignedHero = heroesInWallet.FirstOrDefault();
+                                                    DfkWallet.AvailableHeroes = heroesInWallet;
+
+                                                    //Set Assigned Hero and current hero list
+                                                    WalletManager.GetWallet(DfkWallet.Address).AssignedHero =
+                                                        heroesInWallet.FirstOrDefault();
+                                                    WalletManager.GetWallet(DfkWallet.Address).AvailableHeroes =
+                                                        heroesInWallet;
+
+                                                    //Get this hero's stamina
+                                                    var heroStamina =
+                                                        await new QuestContractHandler().GetHeroStamina(
+                                                            DfkWallet.WalletAccount, DfkWallet.AssignedHero);
+
+                                                    //Set Stamina
+                                                    WalletManager.GetWallet(DfkWallet.Address).AssignedHeroStamina =
+                                                        heroStamina;
+
+                                                    //Save changes
+                                                    WalletManager.SaveWallets();
+
+                                                    if (heroStamina < 15)
+                                                    {
+                                                        //We cant be questing.  so lets let go of the jewel and go back to wait for stamina mode
+                                                        QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
+
+                                                        //Tell system your waiting on stamina
+                                                        await eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
+                                                            WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
+
+                                                        //Lets tell jewel manager we're done (only if we succesfully started quest contract)
+                                                        JewelManager.InstanceJewelEvent(new NeedJewelEvent(DfkWallet, NeedJewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
+                                                    }
+                                                }
+                                            }
+                                        }
+
                                         if (timerCheckInstanceStatus != null)
                                             timerCheckInstanceStatus.Enabled = true;
                                     }

@@ -90,8 +90,6 @@ namespace DefiKindom_QuestRunner.Managers
             //New Timer Instance
             _timerToCheckWhoNextGetsJewel = new Timer(Settings.Default.JewelInstanceMsInterval);
             _timerToCheckWhoNextGetsJewel.Elapsed += TimerToCheckWhoNextGetsJewelOnElapsed;
-            _timerToCheckWhoNextGetsJewel.Enabled = true;
-            _timerToCheckWhoNextGetsJewel.Start();
 
             //Mark Monitor as READY for the app to be allowed to work
             MonitorIsReady = true;
@@ -103,6 +101,9 @@ namespace DefiKindom_QuestRunner.Managers
 
         private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
         {
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Start();
+
             await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager (All Instances Loaded to Queue)...." });
         }
 
