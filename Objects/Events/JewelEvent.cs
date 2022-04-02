@@ -3,7 +3,7 @@ using DefiKindom_QuestRunner.Objects;
 
 namespace DefiKindom_QuestRunner
 {
-    internal class NeedJewelEvent
+    internal class JewelEvent
     {
         public enum JewelEventRequestTypes
         {
@@ -13,7 +13,7 @@ namespace DefiKindom_QuestRunner
             JewelMovedToAccount
         }
 
-        public NeedJewelEvent(DfkWallet wallet, JewelEventRequestTypes type, QuestEngine.QuestActivityMode currentActivity)
+        public JewelEvent(DfkWallet wallet, JewelEventRequestTypes type, QuestEngine.QuestActivityMode currentActivity)
         {
             Wallet = wallet;
             RequestType = type;

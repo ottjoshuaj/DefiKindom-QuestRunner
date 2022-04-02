@@ -450,7 +450,7 @@
     <Compile Include="ContractHandlers\QuestContractHandler.cs" />
     <Compile Include="Managers\JewelManager.cs" />
     <Compile Include="Objects\Events\JewelInformationEvent.cs" />
-    <Compile Include="Objects\Events\NeedJewelEvent.cs" />
+    <Compile Include="Objects\Events\JewelEvent.cs" />
     <Compile Include="Managers\WalletManager.cs" />
     <Compile Include="Objects\DfkWallet.cs" />
     <Compile Include="Objects\Events\MessageEvent.cs" />

@@ -173,8 +173,18 @@ namespace DefiKindom_QuestRunner
             gridQuestInstances.AutoSizeColumnsMode = GridViewAutoSizeColumnsMode.Fill;
             gridQuestInstances.DataSource = _tableQuestInstances;
 
-            gridQuestInstances.MasterTemplate.BestFitColumns();
+            //Setup grid column settings
+            gridQuestInstances.Columns[0].MinWidth = 75;
+            gridQuestInstances.Columns[1].MinWidth = 200;
+            gridQuestInstances.Columns[2].MinWidth = 375;
+            gridQuestInstances.Columns[3].MinWidth = 175;
+            gridQuestInstances.Columns[4].MinWidth = 375;
+            gridQuestInstances.Columns[5].MinWidth = 100;
+            gridQuestInstances.Columns[6].MinWidth = 100;
+            gridQuestInstances.Columns[7].MinWidth = 250;
+            gridQuestInstances.Columns[8].MinWidth = 250;
 
+            //Fix all columns alignments
             foreach (var col in gridQuestInstances.Columns)
             {
                 col.HeaderTextAlignment = ContentAlignment.MiddleCenter;
@@ -413,7 +423,10 @@ namespace DefiKindom_QuestRunner
 
             var instancesStarted = await WalletManager.OnBoardQuestInstances();
 
-            AddConsoleMessage($"({instancesStarted}) Quest Instances instantiated...");
+            AddConsoleMessage($"({instancesStarted}) Quest Instances initialized and started...");
+
+            //Tell Discord
+            discordBot.SendMessage($"({instancesStarted}) Quest Instances initialized and started...");
 
             //Tell Jewel Timer to GO
             _eventHub.PublishAsync(new QuestInstancesLoaded());
@@ -422,7 +435,7 @@ namespace DefiKindom_QuestRunner
             mnuStopQuestEngine.Enabled = true;
         }
 
-        private void mnuStopQuestEngine_Click(object sender, EventArgs e)
+        private async void mnuStopQuestEngine_Click(object sender, EventArgs e)
         {
             if (QuestEngineManager.Count == 0)
             {
@@ -438,9 +451,13 @@ namespace DefiKindom_QuestRunner
 
             AddConsoleMessage("Stopping All Quest Instances...");
 
+            discordBot.SendMessage($"Stopping quest instances...");
+
             QuestEngineManager.KillAllInstances();
 
             AddConsoleMessage($"Quest Instances stopped...");
+
+            discordBot.SendMessage($"All Quest Instances have been stopped...");
 
             mnuStartQuestEngine.Enabled = true;
 
@@ -762,12 +779,13 @@ namespace DefiKindom_QuestRunner
                 var wallet = selRow.DataBoundItem as DfkWallet;
                 if (wallet != null)
                 {
+                    await WalletManager.ReloadOneData(wallet.Address);
                     await WalletManager.ReloadWalletHeroData(wallet.Address);
                     await WalletManager.ReloadDfkProfile(wallet.Address);
 
                     WalletManager.SaveWallets();
 
-                    LoadDataToGrid();
+                    selRow.InvalidateRow();
                 }
             }
 

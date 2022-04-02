@@ -24,14 +24,36 @@ namespace DefiKindom_QuestRunner.Discord
             await _client.LoginAsync(TokenType.Bot, "OTU5NDk1NjQ0MjAzMDczNTU2.Ykct9A.9D_WyudUFC2s3t6uoqLJF0CwP5c");
             await _client.StartAsync();
 
-            //_client.SlashCommandExecuted += ClientOnSlashCommandExecuted;
+            _client.SlashCommandExecuted += ClientOnSlashCommandExecuted;
+        }
+
+        private Task ClientOnSlashCommandExecuted(SocketSlashCommand arg)
+        {
+            switch (arg.CommandName.ToLower())
+            {
+                case "restart": //Engine seems stuck so lets restart it
+                    //TODO:  Go and 
+                    break;
+
+                case "reset": //Reet a given instance (unstick a timer etc)
+                    break;
+            }
+
+            return Task.CompletedTask;
         }
 
         public async Task SendMessage(string msg)
         {
-            var guildChannel = _client.Guilds.FirstOrDefault();
-            if (guildChannel != null)
-                await guildChannel.DefaultChannel.SendMessageAsync(msg);
+            try
+            {
+                var guildChannel = _client.Guilds.FirstOrDefault();
+                if (guildChannel != null)
+                    await guildChannel.DefaultChannel.SendMessageAsync(msg);
+            }
+            catch
+            {
+
+            }
         }
     }
 }

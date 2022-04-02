@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Nethereum.Signer;
@@ -84,17 +85,17 @@ namespace DefiKindom_QuestRunner.Managers
         static void SubscribeToEvents()
         {
             //NeedJewelEvent
-            eventHub.Subscribe<NeedJewelEvent>(NeedJewelEventRaise);
+            eventHub.Subscribe<JewelEvent>(NeedJewelEventRaise);
             eventHub.Subscribe<WalletsOnQuestsMessageEvent>(UpdateWalletOnQuestEvent);
         }
 
-        static void NeedJewelEventRaise(NeedJewelEvent evt)
+        static void NeedJewelEventRaise(JewelEvent evt)
         {
             if (evt != null)
             {
                 switch (evt.RequestType)
                 {
-                    case NeedJewelEvent.JewelEventRequestTypes.JewelMovedToAccount:
+                    case JewelEvent.JewelEventRequestTypes.JewelMovedToAccount:
                         lock (Wallets)
                         {
                             var jewelHolder = Wallets.FirstOrDefault(x => x.JewelBalance > 0);
@@ -197,6 +198,21 @@ namespace DefiKindom_QuestRunner.Managers
                 var profile = await new ProfileContractHandler().GetProfile(wallet.WalletAccount);
                 if (profile != null)
                     wallet.DfkProfile = profile;
+            }
+
+            return true;
+        }
+
+        public static async Task<bool> ReloadOneData(string address)
+        {
+            DfkWallet wallet;
+
+            lock (Wallets)
+                wallet = Wallets.FirstOrDefault(x => x.Address.Trim().ToUpper() == address.Trim().ToUpper());
+
+            if (wallet != null)
+            {
+                wallet.CurrentBalance = await new OneContractHandler().CheckHarmonyONEBalance(wallet.WalletAccount);
             }
 
             return true;
