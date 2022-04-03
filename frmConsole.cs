@@ -65,6 +65,11 @@ namespace DefiKindom_QuestRunner
         private decimal _currentJewelProfit = 0;
         private decimal _currentJewelTotal = 0;
 
+        private decimal _totalAfterCut = 0;
+        private decimal _totalProfitAfterCut = 0;
+
+        private decimal _totalCutToTransfer = 0;
+
         #endregion
 
         #region Delegates
@@ -510,6 +515,9 @@ namespace DefiKindom_QuestRunner
 
                         //Init app with new import wallets
                         await Task.Run(HandleWalletIndex);
+
+                        //Load grid Data
+                        LoadDataToGrid();
                     }
                 }
             }
@@ -1172,7 +1180,7 @@ namespace DefiKindom_QuestRunner
                 Invoke(new HandleJewelProfitUxUpdatesDelegate(HandleJewelProfitUxUpdates), jewelInfo);
             else
             {
-                //Lets tally up old jewel amount to new
+                //Lets tally up old jewel amount to new (this only happens on startup)
                 if (_startingJewelAmount == 0)
                 {
                     _startingJewelAmount = jewelInfo.Balance;
@@ -1478,9 +1486,9 @@ namespace DefiKindom_QuestRunner
         {
             try
             {
-                var msgToSend = $"Current JEWEL Profits: {_currentJewelProfit:0.####}.  Total: {_currentJewelTotal:0.####} JEWEL";
+                // var msgToSend = $"Current JEWEL Profits: {_currentJewelProfit:0.####}.  Total: {_currentJewelTotal:0.####} JEWEL";
 
-                await discordBot.SendMessage(msgToSend);
+                //await discordBot.SendMessage(msgToSend);
             }
             catch (Exception ex)
             {

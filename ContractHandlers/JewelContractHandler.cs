@@ -98,5 +98,58 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return false;
         }
 
+
+        public async Task<bool> ShareJewel(DfkWallet source, string destAddress, decimal amount)
+        {
+            try
+            {
+                if (source.Address.ToLower() == destAddress.ToLower())
+                    return true;
+
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    "/api/jewel/share", new JewelTransferRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = source.Name,
+                            Address = source.Address,
+                            PrivateKey = source.PrivateKey,
+                            PublicKey = source.PublicKey,
+                            MnemonicPhrase = source.MnemonicPhrase
+                        },
+                        DestinationAddress = destAddress,
+                        Amount = amount
+                    });
+
+                if (response != null)
+                    return response.Success;
+                /*
+                var web3 = new Web3(source.WalletAccount, Settings.Default.CurrentRpcUrl)
+                {
+                    TransactionManager =
+                    {
+                        UseLegacyAsDefault = true,
+                        CalculateOrSetDefaultGasPriceFeesIfNotSet = true
+                    }
+                };
+
+                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Jewel),
+                    Settings.Default.JewelContractAddress);
+
+                var gas = new HexBigInteger(new BigInteger(400000));
+                var value = new HexBigInteger(new BigInteger(0));
+                var transaction = contract.GetFunction("transferAll").SendTransactionAsync(source.WalletAccount.Address, gas, value, destination.Address);
+                transaction.Wait();
+
+                return true;
+                */
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return false;
+        }
     }
 }

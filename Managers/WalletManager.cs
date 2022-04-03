@@ -638,6 +638,17 @@ namespace DefiKindom_QuestRunner.Managers
 
             foreach (var wallet in instancesToOnBoard)
             {
+                //Get a list of heroes for wallet
+                //wallet.AvailableHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
+                if(wallet.AvailableHeroes.Count == 0) continue; //No heroes assigned, so no sense in questing!
+                
+                //Is the wallet not assigned a hero in our local db?  If NO then lets set on
+                if (wallet.AssignedHero == 0 && wallet.AvailableHeroes.Count > 0)
+                {
+                    //Assign first hero as active hero
+                    wallet.AssignedHero = wallet.AvailableHeroes.First();
+                }
+
                 //Check Hero Stamina and current quest status
                 wallet.AssignedHeroQuestStatus = await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
                 wallet.AssignedHeroStamina =

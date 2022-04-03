@@ -9,5 +9,8 @@ namespace DefiKindom_QuestRunner.ApiHandler.Objects
 
         [JsonProperty("destinationAddress")]
         public string DestinationAddress { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
     }
 }

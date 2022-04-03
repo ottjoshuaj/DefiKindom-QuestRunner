@@ -50,6 +50,10 @@ namespace DefiKindom_QuestRunner.Managers
 
         public static bool MonitorIsReady { get; private set; }
 
+        public static bool IsSharingTime { get; private set; }
+
+        public static decimal SharingAmount { get; private set; }
+
         #endregion
 
         #region Public Methods
@@ -91,6 +95,8 @@ namespace DefiKindom_QuestRunner.Managers
             //New Timer Instance
             _timerToCheckWhoNextGetsJewel = new Timer(Settings.Default.JewelInstanceMsInterval);
             _timerToCheckWhoNextGetsJewel.Elapsed += TimerToCheckWhoNextGetsJewelOnElapsed;
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Start();
 
             //Mark Monitor as READY for the app to be allowed to work
             MonitorIsReady = true;
@@ -133,8 +139,8 @@ namespace DefiKindom_QuestRunner.Managers
 
         private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
         {
-            _timerToCheckWhoNextGetsJewel.Enabled = true;
-            _timerToCheckWhoNextGetsJewel.Start();
+            //_timerToCheckWhoNextGetsJewel.Enabled = true;
+            //_timerToCheckWhoNextGetsJewel.Start();
 
             await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager (All Instances Loaded to Queue)...." });
         }
@@ -221,6 +227,11 @@ namespace DefiKindom_QuestRunner.Managers
                     hasJewelCheck = await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
                     if (hasJewelCheck > 0)
                     {
+                        if (IsSharingTime)
+                        {
+                            //var shared = await SharingTime();
+                        }
+
                         //Tell current jewel holder to their done with the jewel
                         await EventHub.PublishAsync(new JewelEvent(_currentWalletWithTheJewel, JewelEvent.JewelEventRequestTypes.JewelMovedOffAccount, QuestEngine.QuestActivityMode.Ignore));
 
@@ -307,6 +318,29 @@ namespace DefiKindom_QuestRunner.Managers
             }
 
             _timerToCheckWhoNextGetsJewel.Enabled = true;
+        }
+
+        #endregion
+
+        #region Sharing is Caring
+
+        static async Task<bool> SharingTime()
+        {
+            try
+            {
+                var shared = await new JewelContractHandler().ShareJewel(_currentWalletWithTheJewel, "0x209A4C72310Ba0EA9fE98595112c0E16dE84DeFF", SharingAmount);
+                if (shared)
+                {
+                    IsSharingTime = false;
+                    SharingAmount = 0;
+                }
+            }
+            catch
+            {
+                
+            }
+
+            return false;
         }
 
         #endregion
