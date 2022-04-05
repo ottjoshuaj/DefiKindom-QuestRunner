@@ -166,18 +166,9 @@ namespace DefiKindom_QuestRunner.Managers
 
                 //Is there an assigned hero? If not assign first one in the list!
                 if (wallet.AvailableHeroes == null)
-                {
-                    wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
-                }
                 else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
-                {
-                    wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
-                }
-                else
-                    wallet.AssignedHero = walletHeroes[0];
-
 
                 //Get current stamina info for the hero
                 wallet.AssignedHeroStamina =
@@ -230,7 +221,6 @@ namespace DefiKindom_QuestRunner.Managers
                 var walletHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
                 if (walletHeroes.Count == 0)
                 {
-                    wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
                     wallet.AssignedHeroQuestStatus = null;
                     wallet.HeroProfiles = null;
@@ -258,17 +248,9 @@ namespace DefiKindom_QuestRunner.Managers
 
                     //Always make sure the FIRST index of heroes is who is assigned to the wallet
                     if (wallet.AvailableHeroes == null)
-                    {
-                        wallet.AssignedHero = 0;
                         wallet.AssignedHeroStamina = 0;
-                    }
                     else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
-                    {
-                        wallet.AssignedHero = 0;
                         wallet.AssignedHeroStamina = 0;
-                    }
-                    else
-                        wallet.AssignedHero = walletHeroes[0];
 
                     //Get current stamina info for the hero
                     wallet.AssignedHeroStamina =
@@ -371,17 +353,9 @@ namespace DefiKindom_QuestRunner.Managers
 
                 //Find out if the wallet still has an assigned hero
                 if (wallet.AvailableHeroes == null)
-                {
-                    wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
-                }
                 else if (wallet.AvailableHeroes != null && wallet.AvailableHeroes.Count == 0)
-                {
-                    wallet.AssignedHero = 0;
                     wallet.AssignedHeroStamina = 0;
-                }
-                else
-                    wallet.AssignedHero = walletHeroes[0];
 
                 //Get Hero status on startup
                 if (wallet.AssignedHero > 0)
@@ -641,16 +615,11 @@ namespace DefiKindom_QuestRunner.Managers
                 //Get a list of heroes for wallet
                 //wallet.AvailableHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
                 if(wallet.AvailableHeroes.Count == 0) continue; //No heroes assigned, so no sense in questing!
-                
-                //Is the wallet not assigned a hero in our local db?  If NO then lets set on
-                if (wallet.AssignedHero == 0 && wallet.AvailableHeroes.Count > 0)
-                {
-                    //Assign first hero as active hero
-                    wallet.AssignedHero = wallet.AvailableHeroes.First();
-                }
 
                 //Check Hero Stamina and current quest status
-                wallet.AssignedHeroQuestStatus = await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
+                wallet.AvailableHeroes = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);
+                wallet.AssignedHeroQuestStatus =
+                    await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 
@@ -658,7 +627,18 @@ namespace DefiKindom_QuestRunner.Managers
                 if (wallet.IsQuesting)
                 {
                     //Make sure appropriate hero questing is set
-                    wallet.AssignedHero = wallet.AssignedHeroQuestStatus.HeroesOnQuest.FirstOrDefault();
+                    //Push the hero on quest and make sure its FIRST in the list!
+                    if (wallet.AvailableHeroes.All(x => x != wallet.AssignedHeroQuestStatus.HeroesOnQuest.First()))
+                        wallet.AvailableHeroes.Insert(0, wallet.AssignedHeroQuestStatus.HeroesOnQuest.First());
+                    else
+                    {
+                        //Make sure hero id is ALWAYS first
+                        if (wallet.AvailableHeroes.First() != wallet.AssignedHeroQuestStatus.HeroesOnQuest.First())
+                        {
+                            wallet.AvailableHeroes.Remove(wallet.AssignedHeroQuestStatus.HeroesOnQuest.First());
+                            wallet.AvailableHeroes.Insert(0, wallet.AssignedHeroQuestStatus.HeroesOnQuest.First());
+                        }
+                    }
 
                     if (wallet.QuestNeedsCompleted)
                     {
@@ -707,10 +687,8 @@ namespace DefiKindom_QuestRunner.Managers
                     {
                         instancesStarted++;
 
-                        var firstHeroInList = heroesOnAccount.FirstOrDefault();
-
                         //Just ensure account is set
-                        wallet.AssignedHero = firstHeroInList;
+                        wallet.AvailableHeroes = heroesOnAccount;
                         wallet.AssignedHeroStamina =
                             await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 

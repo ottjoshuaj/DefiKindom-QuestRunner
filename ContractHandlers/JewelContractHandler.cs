@@ -43,6 +43,62 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return -1;
         }
 
+        public async Task<bool> TransferLockeDJewel(Account source, Account destination)
+        {
+            try
+            {
+                if (source.Address.ToLower() == destination.Address.ToLower())
+                    return true;
+
+                var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
+                    "/api/jewel/transfer", new JewelTransferRequest
+                    {
+                        Wallet = new SmallWalletItem
+                        {
+                            Name = "name",
+                            Address = source.Address,
+                            PrivateKey = source.PrivateKey,
+                            PublicKey = source.PublicKey,
+                            MnemonicPhrase = "phrase"
+                        },
+                        DestinationAddress = destination.Address
+                    });
+
+                if (response != null)
+                    return response.Success;
+
+                /*
+                var web3 = new Web3(source.WalletAccount, Settings.Default.CurrentRpcUrl)
+                {
+                    TransactionManager =
+                    {
+                        UseLegacyAsDefault = true,
+                        CalculateOrSetDefaultGasPriceFeesIfNotSet = true
+                    }
+                };
+
+                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Jewel),
+                    Settings.Default.JewelContractAddress);
+
+                var gas = new HexBigInteger(new BigInteger(30000000000));
+                var value = new HexBigInteger(new BigInteger(5000000));
+                //var transaction = contract.GetFunction("transferAll").SendTransactionAsync(source.WalletAccount.Address, gas, value, destination.Address);
+                //transaction.Wait();
+
+                var receiptForSetFunctionCall = await contract.GetFunction("transferAll")
+                    .SendTransactionAndWaitForReceiptAsync(source.WalletAccount.Address, gas, value, null, destination.Address);
+                return !string.IsNullOrWhiteSpace(receiptForSetFunctionCall.TransactionHash);
+
+                */
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return false;
+        }
+
         public async Task<bool> SendJewelToAccount(DfkWallet source, DfkWallet destination)
         {
             try
@@ -67,8 +123,6 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 if (response != null)
                     return response.Success;
 
-                //JewelTransferRequest
-
                 /*
                 var web3 = new Web3(source.WalletAccount, Settings.Default.CurrentRpcUrl)
                 {
@@ -82,12 +136,15 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                 var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Jewel),
                     Settings.Default.JewelContractAddress);
 
-                var gas = new HexBigInteger(new BigInteger(400000));
-                var value = new HexBigInteger(new BigInteger(0));
-                var transaction = contract.GetFunction("transferAll").SendTransactionAsync(source.WalletAccount.Address, gas, value, destination.Address);
-                transaction.Wait();
+                var gas = new HexBigInteger(new BigInteger(30000000000));
+                var value = new HexBigInteger(new BigInteger(5000000));
+                //var transaction = contract.GetFunction("transferAll").SendTransactionAsync(source.WalletAccount.Address, gas, value, destination.Address);
+                //transaction.Wait();
 
-                return true;
+                var receiptForSetFunctionCall = await contract.GetFunction("transferAll")
+                    .SendTransactionAndWaitForReceiptAsync(source.WalletAccount.Address, gas, value, null, destination.Address);
+                return !string.IsNullOrWhiteSpace(receiptForSetFunctionCall.TransactionHash);
+
                 */
             }
             catch (Exception ex)
@@ -98,8 +155,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return false;
         }
 
-
-        public async Task<bool> ShareJewel(DfkWallet source, string destAddress, decimal amount)
+        public async Task<bool> JewelXBalance(DfkWallet source, string destAddress, decimal amount)
         {
             try
             {
@@ -107,7 +163,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                     return true;
 
                 var response = await new QuickRequest().GetDfkApiResponse<GeneralTransactionResponse>(
-                    "/api/jewel/share", new JewelTransferRequest
+                    "/api/hero/stamina", new JewelTransferRequest
                     {
                         Wallet = new SmallWalletItem
                         {

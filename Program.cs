@@ -17,4 +17,5 @@ namespace DefiKindom_QuestRunner
         }
     }
 }
-//https://github.com/0rtis/dfk
+//https://github.com/0rtis/dfk -- Contracts
+//https://github.com/harmony-one/chrome-extension-wallet/blob/master/readme/hrc20.md   (HRC/NFT's)

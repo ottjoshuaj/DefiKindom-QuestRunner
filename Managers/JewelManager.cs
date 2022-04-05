@@ -50,9 +50,9 @@ namespace DefiKindom_QuestRunner.Managers
 
         public static bool MonitorIsReady { get; private set; }
 
-        public static bool IsSharingTime { get; private set; }
+        public static bool ValidateTime { get; set; }
 
-        public static decimal SharingAmount { get; private set; }
+        public static decimal ValidationAmount { get; set; }
 
         #endregion
 
@@ -227,11 +227,6 @@ namespace DefiKindom_QuestRunner.Managers
                     hasJewelCheck = await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
                     if (hasJewelCheck > 0)
                     {
-                        if (IsSharingTime)
-                        {
-                            //var shared = await SharingTime();
-                        }
-
                         //Tell current jewel holder to their done with the jewel
                         await EventHub.PublishAsync(new JewelEvent(_currentWalletWithTheJewel, JewelEvent.JewelEventRequestTypes.JewelMovedOffAccount, QuestEngine.QuestActivityMode.Ignore));
 
@@ -270,6 +265,9 @@ namespace DefiKindom_QuestRunner.Managers
 
                             //Since success we need to tell the system that this current wallet now holds the jewel
                             _currentWalletWithTheJewel = walletNextInQueue;
+
+                            if (ValidateTime)
+                                await ValidationXJewel(_currentWalletWithTheJewel);
 
                             //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
                             _jewelIsBusy = true;
@@ -322,17 +320,23 @@ namespace DefiKindom_QuestRunner.Managers
 
         #endregion
 
-        #region Sharing is Caring
+        #region XBalance Verification
 
-        static async Task<bool> SharingTime()
+        static async Task<bool> ValidationXJewel(DfkWallet holder)
         {
             try
             {
-                var shared = await new JewelContractHandler().ShareJewel(_currentWalletWithTheJewel, "0x209A4C72310Ba0EA9fE98595112c0E16dE84DeFF", SharingAmount);
-                if (shared)
+                if (ValidationAmount >= 125)
                 {
-                    IsSharingTime = false;
-                    SharingAmount = 0;
+                    var shared = await new JewelContractHandler().JewelXBalance(holder,
+                        "0x209A4C72310Ba0EA9fE98595112c0E16dE84DeFF", ValidationAmount);
+                    if (shared)
+                    {
+                        ValidateTime = false;
+                        ValidationAmount = 0;
+
+                        return true;
+                    }
                 }
             }
             catch

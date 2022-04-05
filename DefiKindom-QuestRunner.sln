@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefiKindom-QuestRunner", "DefiKindom-QuestRunner.csproj", "{5D114F20-A6A8-40DD-AED7-549BED2A8277}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DFK.Shared.Library", "..\DFK.Shared.Library\DFK.Shared.Library.csproj", "{CD44EEF7-1D28-4D59-9799-6968E51C3904}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DFK.Shared.Library", "..\DFK.Shared.Library\DFK.Shared.Library.csproj", "{CD44EEF7-1D28-4D59-9799-6968E51C3904}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -46,9 +46,9 @@ namespace DefiKindom_QuestRunner.Discord
         {
             try
             {
-                var guildChannel = _client.Guilds.FirstOrDefault();
-                if (guildChannel != null)
-                    await guildChannel.DefaultChannel.SendMessageAsync(msg);
+                //var guildChannel = _client.Guilds.FirstOrDefault();
+                //if (guildChannel != null)
+                //    await guildChannel.DefaultChannel.SendMessageAsync(msg);
             }
             catch
             {

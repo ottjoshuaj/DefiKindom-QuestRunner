@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using NBitcoin.Protocol;
 using Newtonsoft.Json;
 
 namespace DefiKindom_QuestRunner.Objects
@@ -31,8 +33,16 @@ namespace DefiKindom_QuestRunner.Objects
         [JsonProperty("heroesInWallet")]
         public List<int> AvailableHeroes { get; set; }
 
-        [JsonProperty("assignedHero")]
-        public int AssignedHero { get; set; }
+        [JsonIgnore]
+        public int AssignedHero {
+            get
+            {
+                if (AvailableHeroes != null && AvailableHeroes.Count > 0)
+                    return AvailableHeroes.First();
+
+                return 0;
+            }
+        }
 
         [JsonProperty("assignedHeroStamina")]
         public int AssignedHeroStamina { get; set; }

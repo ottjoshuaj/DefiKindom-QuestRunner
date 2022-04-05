@@ -392,6 +392,18 @@
     <Compile Include="Dialogs\frmSendHeroesToWallets.Designer.cs">
       <DependentUpon>frmSendHeroesToWallets.cs</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\frmSendNormalJewel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\frmSendNormalJewel.Designer.cs">
+      <DependentUpon>frmSendNormalJewel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\frmSendJewel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\frmSendJewel.Designer.cs">
+      <DependentUpon>frmSendJewel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\frmSendONEToWallets.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -473,6 +485,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\frmSendHeroesToWallets.resx">
       <DependentUpon>frmSendHeroesToWallets.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\frmSendNormalJewel.resx">
+      <DependentUpon>frmSendNormalJewel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\frmSendJewel.resx">
+      <DependentUpon>frmSendJewel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\frmSendONEToWallets.resx">
       <DependentUpon>frmSendONEToWallets.cs</DependentUpon>

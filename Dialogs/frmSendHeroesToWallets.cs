@@ -94,6 +94,19 @@ namespace DefiKindom_QuestRunner.Dialogs
                     for (var i = 0; i < walletsNeedingHeroes.Count; i++)
                     {
                         var walletNeedingHero = walletsNeedingHeroes[i];
+                        
+                        //Does wallet have a hero? Lets 100% make sure
+                        var walletHeroCheck =
+                            await new HeroContractHandler().GetWalletHeroes(walletNeedingHero.WalletAccount);
+                        if (walletHeroCheck != null)
+                        {
+                            walletNeedingHero.AvailableHeroes = walletHeroCheck;
+
+                            WalletManager.SaveWallets();
+
+                            continue;
+                        }
+
                         var heroToSend = sourceHeroes.FirstOrDefault();
                         if (heroToSend == 0)
                         {
@@ -114,9 +127,8 @@ namespace DefiKindom_QuestRunner.Dialogs
 
 
                             //Force "wallet" we are cleaning up to have no assigned hero, no stam, and clear out available heroes
-                            WalletManager.GetWallet(walletNeedingHero.Address).AssignedHero = heroToSend;
-                            WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
                             WalletManager.GetWallet(walletNeedingHero.Address).AvailableHeroes?.Add(heroToSend);
+                            WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
 
                             //Remove the hero from source list so we dont try to send it somewhere else
                             sourceHeroes.Remove(heroToSend);
@@ -136,9 +148,8 @@ namespace DefiKindom_QuestRunner.Dialogs
                                 if (heroList.Any(x => x == heroToSend))
                                 {
                                     //Ok so hero eventually did arrive.  Update stuff
-                                    WalletManager.GetWallet(walletNeedingHero.Address).AssignedHero = heroToSend;
-                                    WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
                                     WalletManager.GetWallet(walletNeedingHero.Address).AvailableHeroes?.Add(heroToSend);
+                                    WalletManager.GetWallet(walletNeedingHero.Address).AssignedHeroStamina = await new QuestContractHandler().GetHeroStamina(walletNeedingHero.WalletAccount, heroToSend);
                                 }
                                 else
                                 {

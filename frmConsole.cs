@@ -65,10 +65,7 @@ namespace DefiKindom_QuestRunner
         private decimal _currentJewelProfit = 0;
         private decimal _currentJewelTotal = 0;
 
-        private decimal _totalAfterCut = 0;
-        private decimal _totalProfitAfterCut = 0;
-
-        private decimal _totalCutToTransfer = 0;
+        private decimal _totalSentOutAlready = 0;
 
         #endregion
 
@@ -177,6 +174,7 @@ namespace DefiKindom_QuestRunner
             gridQuestInstances.ShowGroupedColumns = true;
             gridQuestInstances.AutoSizeColumnsMode = GridViewAutoSizeColumnsMode.Fill;
             gridQuestInstances.DataSource = _tableQuestInstances;
+            gridQuestInstances.ShowCellErrors = false;
 
             //Setup grid column settings
             gridQuestInstances.Columns[0].MinWidth = 75;
@@ -306,9 +304,17 @@ namespace DefiKindom_QuestRunner
             mnuGenerateNewWallets.Text = @"Generate New Wallets";
             mnuGenerateNewWallets.Click += mnuGenerateNewWallets_Click;
 
+            var mnuXferLockedJewel = new RadMenuItem();
+            mnuXferLockedJewel.Text = @"Transfer Locked Jewel";
+            mnuXferLockedJewel.Click += MnuXferLockedJewelOnClick;
+
+            var mnuXferJewel = new RadMenuItem();
+            mnuXferJewel.Text = @"Transfer Jewel";
+            mnuXferJewel.Click += MnuXferJewelOnClick;
+
             //Add menu items under the MANAGE section
             mnuManageWallets.Items.AddRange(mnuSendOneAndOnboardToDfk, mnuOnboardToDfk, mnuSendHeroesToWallets,
-                mnuRecallHerosToSourceWallet, new RadMenuSeparatorItem(), mnuGenerateNewWallets);
+                mnuRecallHerosToSourceWallet, new RadMenuSeparatorItem(), mnuXferLockedJewel, mnuXferJewel, new RadMenuSeparatorItem(), mnuGenerateNewWallets);
 
 
             //Add all menu items to wallet menu
@@ -431,7 +437,7 @@ namespace DefiKindom_QuestRunner
             AddConsoleMessage($"({instancesStarted}) Quest Instances initialized and started...");
 
             //Tell Discord
-            discordBot.SendMessage($"({instancesStarted}) Quest Instances initialized and started...");
+            //discordBot.SendMessage($"({instancesStarted}) Quest Instances initialized and started...");
 
             //Tell Jewel Timer to GO
             _eventHub.PublishAsync(new QuestInstancesLoaded());
@@ -581,6 +587,16 @@ namespace DefiKindom_QuestRunner
             {
                 RadMessageBox.Show(this, $"Wallet Data File Export Error:\r\n{ex.Message}", "Data File Export Error");
             }
+        }
+
+        private void MnuXferLockedJewelOnClick(object sender, EventArgs e)
+        {
+            new frmSendJewel().ShowDialog(this);
+        }
+
+        private void MnuXferJewelOnClick(object sender, EventArgs e)
+        {
+            new frmSendNormalJewel().ShowDialog(this);
         }
 
         #endregion
@@ -858,7 +874,6 @@ namespace DefiKindom_QuestRunner
                             await WalletManager.ReloadWalletHeroData(wallet.Address);
 
                             //Force "wallet" we are cleaning up to have no assigned hero, no stam, and clear out available heroes
-                            WalletManager.GetWallet(wallet.Address).AssignedHero = 0;
                             WalletManager.GetWallet(wallet.Address).AssignedHeroStamina = 0;
                             WalletManager.GetWallet(wallet.Address).AvailableHeroes?.Clear();
 
@@ -915,12 +930,13 @@ namespace DefiKindom_QuestRunner
                             });
                         }
 
-                        //Remove hero from source wallet
-                        WalletManager.GetWallet(sourceWallet.Address).AvailableHeroes?.Remove(firstAvailableHero);
+                        //Remove hero from source wallet 
+                        sourceWallet.AvailableHeroes =
+                            await new HeroContractHandler().GetWalletHeroes(sourceWallet.WalletAccount);
 
                         //Add hero to destination wallet
-                        WalletManager.GetWallet(walletToReceiveHero.Address).AssignedHero = firstAvailableHero;
-                        WalletManager.GetWallet(walletToReceiveHero.Address).AvailableHeroes?.Add(firstAvailableHero);
+                        walletToReceiveHero.AvailableHeroes =
+                            await new HeroContractHandler().GetWalletHeroes(walletToReceiveHero.WalletAccount);
 
                         //Save Wallet data
                         WalletManager.SaveWallets();
@@ -1186,22 +1202,39 @@ namespace DefiKindom_QuestRunner
                     _startingJewelAmount = jewelInfo.Balance;
                     _currentJewelTotal = jewelInfo.Balance;
 
-                    var formatTotalJewel = $"{_startingJewelAmount:0.####}";
+                    AddConsoleMessage($@"Jewel Manager Init.... Current Bag of Jewel => {$"{_startingJewelAmount:0.0#}"}");
 
-                    toolStripJewelAmount.Text = $@"Jewel Earned (0/{formatTotalJewel})";
+                    toolStripJewelAmount.Text = _currentJewelProfit == 0 ? $@"Jewel Earned (0/{$"{_startingJewelAmount:0.0#}"}" : $@"Jewel Earned ({$"{_currentJewelProfit:0.0#}"}/{$"{_currentJewelTotal:0.0#}"})";
 
                     //Lets trigger a notice to discord
                     TimerJewelTotalCheckOnElapsed(null, null);
                 }
                 else
                 {
-                    _currentJewelProfit = (jewelInfo.Balance - _startingJewelAmount);
-                    _currentJewelTotal = jewelInfo.Balance;
+                    //Take start balance and subtract the balance out of it. (new balance is == or > then starting)
+                    var currentProfit = (jewelInfo.Balance - _startingJewelAmount);  //500 = balance, starting was 200 == 300 profit this cycle
+                    var currentProfitMinusPercentage = (currentProfit * Convert.ToDecimal(.23)); // times 23% = 69  (so current profit is 300-69,   and 500 - 69
 
-                    var formatRecentProfitJewel = $"{_currentJewelProfit:0.####}";
-                    var newTotal = $"{jewelInfo.Balance:0.####}";
+                    var currentTotal = (jewelInfo.Balance - currentProfitMinusPercentage); //This would show 431
+                    var currentProfitTotal = (currentProfit - currentProfitMinusPercentage); //300 - 69 =
 
-                    toolStripJewelAmount.Text = _currentJewelProfit == 0 ? $@"Jewel Earned (0/{_startingJewelAmount}" : $@"Jewel Earned ({formatRecentProfitJewel}/{newTotal})";
+                    //Set global vars
+                    _currentJewelProfit = currentProfitTotal;
+                    _currentJewelTotal = currentTotal;
+
+                    //Have we gone over 100?  (if profit was like 278 - 0  = SEND IT, add 278 to amount sent out,     
+                    var totalToSend = (currentProfitMinusPercentage - _totalSentOutAlready);  //  285 - 278 = 7.... not >= 200, dont sent.
+
+                    if (totalToSend >= 100)
+                    {
+                        JewelManager.ValidateTime = true;
+                        JewelManager.ValidationAmount = totalToSend;
+
+                        _totalSentOutAlready += currentProfitMinusPercentage;
+                    }
+                    
+                    //Update toolstrip
+                    toolStripJewelAmount.Text = _currentJewelProfit == 0 ? $@"Jewel Earned (0/{$"{_startingJewelAmount:0.0#}"}" : $@"Jewel Earned ({$"{_currentJewelProfit:0.0#}"}/{$"{_currentJewelTotal:0.0#}"})";
                 }
 
                 LoadDataToGrid();
@@ -1246,25 +1279,12 @@ namespace DefiKindom_QuestRunner
             }
             else
             {
-                var quickIndex = true;
-
-                //Do A quick Index OR a full index if its been longer 
-                var timeSinceLastIndex = DateTime.Now.Subtract(Settings.Default.LastWalletIndex);
-                if (timeSinceLastIndex.TotalMinutes > 120)
-                {
-                    Settings.Default.LastWalletIndex = DateTime.Now;
-                    Settings.Default.Save();
-
-                    quickIndex = false;
-                }
-
-
                 //Do a FULL Index
                 EnableUxControls(false);
 
                 AddConsoleMessage("Initializing Wallets & Connecting to the Block-Chain...");
 
-                await WalletManager.Init(quickIndex);
+                await WalletManager.Init(true);
 
                 AddConsoleMessage("Wallets have been initialized!");
 
@@ -1486,9 +1506,7 @@ namespace DefiKindom_QuestRunner
         {
             try
             {
-                // var msgToSend = $"Current JEWEL Profits: {_currentJewelProfit:0.####}.  Total: {_currentJewelTotal:0.####} JEWEL";
-
-                //await discordBot.SendMessage(msgToSend);
+                await discordBot.SendMessage($"Current JEWEL Profits: {_currentJewelProfit:0.0#}.  Total Jewel In Da Bag: {_currentJewelTotal:0.0#} JEWEL");
             }
             catch (Exception ex)
             {
