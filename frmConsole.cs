@@ -969,7 +969,7 @@ namespace DefiKindom_QuestRunner
                 if (sendJewelTo != null)
                 {
                     //Find the jewel holder
-                    var jewelHolder = await WalletManager.GetJewelHolder();
+                    var jewelHolder = await WalletManager.GetJewelHolder(Settings.Default.LastKnownJewelHolder);
                     if (jewelHolder != null)
                     {
                         var sendJewelResponse =
@@ -988,9 +988,6 @@ namespace DefiKindom_QuestRunner
                         }
 
                     }
-
-
-                    selRow.InvalidateRow();
                 }
             }
 

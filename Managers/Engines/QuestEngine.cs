@@ -299,6 +299,9 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                     DfkWallet.AssignedHero);
                             if (questStatus != null)
                             {
+                                //Set Quest Status
+                                DfkWallet.AssignedHeroQuestStatus = questStatus;
+
                                 if (!questStatus.IsQuesting)
                                 {
                                     //Prior contract call finally executed. Update app telling it to move into stamina mode
@@ -311,13 +314,26 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                         JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
                                     break;
                                 }
+
+                                //We sure we want to complete ?
+                                if (questStatus.WantsToComplete)
+                                {
+                                    //So YES it does want to complete! So let the standard flow happen
+                                }
+                                else if(questStatus.WantsToCancel)
+                                {
+                                    //Actually we should cancel. Enough time has passed
+                                    QuestCurrentMode = QuestActivityMode.WantsToCancelQuest;
+
+                                    break;
+                                }
                             }
                             
                             //Lets cancel the quest
-                            var cancelQuestResponse = await
+                            var completeQuestResponse = await
                                 new QuestContractHandler().CompleteQuesting(DfkWallet,
                                     DfkWallet.AssignedHero);
-                            if (cancelQuestResponse)
+                            if (completeQuestResponse)
                             {
                                 QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
 
@@ -363,6 +379,9 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                     DfkWallet.AssignedHero);
                             if (questStatus != null)
                             {
+                                //Set Quest Status
+                                DfkWallet.AssignedHeroQuestStatus = questStatus;
+
                                 if (!questStatus.IsQuesting)
                                 {
                                     //Prior contract call finally executed. Update app telling it to move into stamina mode
@@ -374,6 +393,21 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                     await _eventHub.PublishAsync(new JewelEvent(DfkWallet,
                                         JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
                                     break;
+                                }
+
+                                //We sure we want to complete ?
+                                if (questStatus.WantsToComplete)
+                                {
+                                    //Should complete! 
+                                    //Actually we should cancel. Enough time has passed
+                                    QuestCurrentMode = QuestActivityMode.WantsToCompleteQuest;
+
+                                    break;
+                                }
+
+                                if (questStatus.WantsToCancel)
+                                {
+                                    //Yes we want to cancel. Let the flow happen
                                 }
                             }
 
@@ -415,10 +449,6 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                         JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
                                 }
                             }
-                            else
-                            {
-
-                            }
                         }
                         break;
 
@@ -426,12 +456,16 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                         if (_hasTheJewel)
                         {
                             //Add a check to see if we're questing already
-                            var amIQuestingAlready =
+                            var questStatus =
                                 await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
                                     DfkWallet.AssignedHero);
-                            if (amIQuestingAlready != null)
+                            if (questStatus != null)
                             {
-                                if (amIQuestingAlready.IsQuesting)
+                                //Set Quest Status
+                                DfkWallet.AssignedHeroQuestStatus = questStatus;
+
+                                //Questing? 
+                                if (questStatus.IsQuesting)
                                 {
                                     QuestCurrentMode = QuestActivityMode.Questing;
 

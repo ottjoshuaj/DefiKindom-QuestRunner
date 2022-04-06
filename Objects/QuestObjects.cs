@@ -33,6 +33,22 @@ namespace DefiKindom_QuestRunner
                 return true;
             }
         }
+
+        [JsonIgnore]
+        public bool WantsToComplete => DateTime.Now >= QuestCompletesAt;
+
+        [JsonIgnore]
+        public bool WantsToCancel
+        {
+            get
+            {
+                //Check time from start to finish...if its past the amount of time... need canceled ?
+                var now = DateTime.Now;
+                var timeBetweenStartAndNow = now.Subtract(QuestStartedAt.GetValueOrDefault());
+
+                return timeBetweenStartAndNow.TotalMinutes >= 155;
+            }
+        }
     }
 
 
