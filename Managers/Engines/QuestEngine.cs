@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -8,6 +9,7 @@ using PubSub;
 using DefiKindom_QuestRunner.Managers.Contracts;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using Timer = System.Timers.Timer;
 
 namespace DefiKindom_QuestRunner.Managers.Engines
 {
@@ -210,10 +212,6 @@ namespace DefiKindom_QuestRunner.Managers.Engines
 
                                 await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Wants To Cancel...(Queued)." });
                             }
-                            else
-                            {
-                                
-                            }
                         }
                         else
                         {
@@ -376,20 +374,11 @@ namespace DefiKindom_QuestRunner.Managers.Engines
 
                                 WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus = null;
 
-                                if (stamina >= 15)
-                                {
-                                    QuestCurrentMode = QuestActivityMode.WantsToQuest;
+                                _hasTheJewel = false;
 
-                                    await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Has enough stamina. Start Questing..." });
-                                }
-                                else
-                                {
-                                    _hasTheJewel = false;
-
-                                    //Give up the Jewel so next instance can run
-                                    await _eventHub.PublishAsync(new JewelEvent(DfkWallet,
-                                        JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
-                                }
+                                //Give up the Jewel so next instance can run
+                                await _eventHub.PublishAsync(new JewelEvent(DfkWallet,
+                                    JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
                             }
                         }
                         break;
@@ -470,20 +459,11 @@ namespace DefiKindom_QuestRunner.Managers.Engines
 
                                 WalletManager.GetWallet(DfkWallet.Address).AssignedHeroQuestStatus = null;
 
-                                if (stamina >= 15)
-                                {
-                                    QuestCurrentMode = QuestActivityMode.WantsToQuest;
+                                _hasTheJewel = false;
 
-                                    await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Has enough stamina. Start Questing..." });
-                                }
-                                else
-                                {
-                                    _hasTheJewel = false;
-
-                                    //Give up the Jewel so next instance can run
-                                    await _eventHub.PublishAsync(new JewelEvent(DfkWallet,
-                                        JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
-                                }
+                                //Give up the Jewel so next instance can run
+                                await _eventHub.PublishAsync(new JewelEvent(DfkWallet,
+                                    JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
                             }
                         }
                         break;
@@ -594,7 +574,7 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                                     await _eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
                                         WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.WaitingOnStamina));
 
-                                    //Lets tell jewel manager we're done (only if we succesfully started quest contract)
+                                    //Lets tell jewel manager we're done (only if we successfully started quest contract)
                                     await _eventHub.PublishAsync(new JewelEvent(DfkWallet, JewelEvent.JewelEventRequestTypes.FinishedWithJewel, QuestCurrentMode));
 
                                     await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Cant Start Quest (Canceling). (Stamina Too Low => {stamina})" });

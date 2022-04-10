@@ -96,11 +96,15 @@ namespace DefiKindom_QuestRunner.Managers
             //New Timer Instance
             _timerToCheckWhoNextGetsJewel = new Timer(Settings.Default.JewelInstanceMsInterval);
             _timerToCheckWhoNextGetsJewel.Elapsed += TimerToCheckWhoNextGetsJewelOnElapsed;
-            _timerToCheckWhoNextGetsJewel.Enabled = true;
-            _timerToCheckWhoNextGetsJewel.Start();
 
             //Mark Monitor as READY for the app to be allowed to work
             MonitorIsReady = true;
+        }
+
+        public static void StartEngine()
+        {
+            _timerToCheckWhoNextGetsJewel.Enabled = true;
+            _timerToCheckWhoNextGetsJewel.Start();
         }
 
         #endregion

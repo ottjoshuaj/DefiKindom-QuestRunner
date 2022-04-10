@@ -715,6 +715,10 @@ namespace DefiKindom_QuestRunner.Managers
             //Update wallet data file
             SaveWallets();
 
+
+            //Tell Jewel Manager to start processing
+            JewelManager.StartEngine();
+
             return instancesStarted;
         }
 
