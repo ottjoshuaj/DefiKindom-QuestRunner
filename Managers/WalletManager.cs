@@ -673,9 +673,6 @@ namespace DefiKindom_QuestRunner.Managers
                 }
                 else
                 {
-                    //Since we're not questing lets just erase it and can repopulate once we STARt questing again
-                    wallet.AssignedHeroQuestStatus = null;
-
                     //Lets always make sure we have the proper hero assigned and get proper stamina amount before
                     //EVER starting a quest instance
                     var heroesOnAccount = await new HeroContractHandler().GetWalletHeroes(wallet.WalletAccount);

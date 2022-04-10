@@ -127,5 +127,8 @@ namespace DefiKindom_QuestRunner.Objects
 
         [JsonIgnore]
         public int TotalAccountHeroes => AvailableHeroes?.Count ?? 0;
+
+        [JsonIgnore]
+        public bool HasAssignedHero => AssignedHero > 0;
     }
 }

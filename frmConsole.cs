@@ -67,6 +67,10 @@ namespace DefiKindom_QuestRunner
 
         private decimal _totalSentOutAlready = 0;
 
+        //For charts
+        double currentOfflineValue = 0;
+        double currentOnlineValue = 0;
+
         #endregion
 
         #region Delegates
@@ -239,6 +243,8 @@ namespace DefiKindom_QuestRunner
             QuestEngineManager.KillAllInstances();
 
             AddConsoleMessage($"Quest Instances stopped...");
+
+            WalletManager.SaveWallets();
         }
 
         private void OnVisibleChanged(object sender, EventArgs e)
@@ -1303,13 +1309,6 @@ namespace DefiKindom_QuestRunner
                 HandleQuestStartStopEnabled(false, true);
             else
                 HandleQuestStartStopEnabled(true, false);
-
-            //Set initial chart
-            try
-            {
-                chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(WalletManager.GetWallets().Count));
-            } catch {}
-
         }
 
         #endregion
@@ -1334,40 +1333,36 @@ namespace DefiKindom_QuestRunner
             {
                 try
                 {
-                    double? currentOfflineValue;
-                    double? currentOnlineValue;
+                    var totalWalletCount = WalletManager.GetWallets().Count;
+                    double percentOnline;
+                    double percentOffline;
 
                     switch (msgEvent.OnQuestMessageEventType)
                     {
                         case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStarting:
-                            //Get current "online
-                            currentOnlineValue =
-                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0);
-                            currentOnlineValue = currentOnlineValue + 1;
+                            currentOnlineValue += 1;
+                            currentOfflineValue -= 1;
 
-                            //instance starting. Take it from "Idle" to "online"
-                            currentOfflineValue =
-                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0);
-                            currentOfflineValue = currentOfflineValue - 1;
+                            //MAX VALUE IS 100.  So outta TOTAL wallets (x) 
+                            percentOnline = (currentOnlineValue / totalWalletCount) * 100;
+                            percentOffline = (currentOfflineValue / totalWalletCount) * 100;
 
                             //Set New Values
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOnlineValue));
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(1, Convert.ToDouble(currentOfflineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, percentOnline);
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(1, percentOffline);
                             break;
 
                         case WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.InstanceStopping:
-                            //Get current "online
-                            currentOnlineValue =
-                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].GetValue(0);
-                            currentOnlineValue = currentOnlineValue - 1;
+                            currentOnlineValue -= 1;
+                            currentOfflineValue += 1;
 
-                            currentOfflineValue =
-                                (double)chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].GetValue(0);
-                            currentOfflineValue = currentOfflineValue + 1;
+                            //MAX VALUE IS 100.  So outta TOTAL wallets (x) 
+                            percentOnline = (currentOnlineValue / totalWalletCount) * 100;
+                            percentOffline = (currentOfflineValue / totalWalletCount) * 100;
 
                             //Set New Values
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(currentOnlineValue));
-                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(currentOfflineValue));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[0].SetValue(0, Convert.ToDouble(percentOnline));
+                            chartBotsOnline.GetSeries<PieSeries>(0).DataPoints[1].SetValue(0, Convert.ToDouble(percentOffline));
                             break;
                     }
 
@@ -1383,6 +1378,8 @@ namespace DefiKindom_QuestRunner
         {
             var walletInfo = WalletManager.GetWallets();
 
+            //Set total current offline value
+            currentOfflineValue = walletInfo.Count;
 
             chartBotsOnline.AreaType = ChartAreaType.Pie;
             var pieSeriesBotsOnline = new PieSeries();
@@ -1397,16 +1394,17 @@ namespace DefiKindom_QuestRunner
 
             chartHeroesQuesting.AreaType = ChartAreaType.Pie;
             var pieSeriesQuestInstanceStatus = new PieSeries();
-            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting On Stamina"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Need Stamina"));
             pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Questing"));
-            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting To Cancel Quest"));
-            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Waiting On Start Quest"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Wants To Cancel"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Wants To Complete"));
+            pieSeriesQuestInstanceStatus.DataPoints.Add(new PieDataPoint(0, "Wants To Quest"));
             pieSeriesQuestInstanceStatus.ShowLabels = true;
             pieSeriesQuestInstanceStatus.LabelMode = PieLabelModes.Horizontal;
             chartHeroesQuesting.LegendTitle = "Quest Instance Activity";
             chartHeroesQuesting.ShowLegend = true;
             chartHeroesQuesting.Series.Add(pieSeriesQuestInstanceStatus);
-            chartHeroesQuesting.Visible = false; //TOdO REMOVE ME
+            chartHeroesQuesting.Visible = true;
         }
 
         #endregion

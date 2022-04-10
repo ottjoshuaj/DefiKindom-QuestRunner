@@ -43,6 +43,7 @@ namespace DefiKindom_QuestRunner.Managers
         private static Timer _timerToCheckWhoNextGetsJewel;
         private static DfkWallet _currentWalletWithTheJewel;
         private static bool _jewelIsBusy;
+        private static bool _idleMsgShown;
 
         #endregion
 
@@ -163,6 +164,16 @@ namespace DefiKindom_QuestRunner.Managers
 
             try
             {
+                if (WalletsNeedingJewel.Count == 0)
+                {
+                    if (!_idleMsgShown)
+                        await EventHub.PublishAsync(new MessageEvent { Content = @"Jewel Queue => Is Empty => Now Idle" });
+
+                    _idleMsgShown = true;
+                    _timerToCheckWhoNextGetsJewel.Enabled = true;
+                    return;
+                }
+
                 DfkWallet walletNextInQueue;
 
                 //Timer hit (everyone 2 seconds)
@@ -182,6 +193,11 @@ namespace DefiKindom_QuestRunner.Managers
                     return;
                 }
 
+                //Show Message so we know how many items are in queue
+                await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Queue => ({WalletsNeedingJewel.Count}) Instances Needing Jewel" });
+
+                //Set so idle msg shows again
+                _idleMsgShown = false;
 
                 //Move jewel to first Wallet in line 
                 if (_currentWalletWithTheJewel == null)
@@ -252,13 +268,8 @@ namespace DefiKindom_QuestRunner.Managers
                             await new JewelContractHandler().SendJewelToAccount(_currentWalletWithTheJewel, walletNextInQueue);
                         if (result)
                         {
-                            //If Jewel is moving to a new account. Lets check for balance changes
-                            var jewelHolder = await WalletManager.GetJewelHolder(walletNextInQueue.WalletAccount.Address);
-                            if (jewelHolder != null)
-                            {
-                                //Publish message event
-                                await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = jewelHolder.Balance, Holder = jewelHolder.Holder } });
-                            }
+                            //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
+                            _jewelIsBusy = true;
 
                             //Tell current jewel holder their done with the jewel
                             await EventHub.PublishAsync(new JewelEvent(_currentWalletWithTheJewel, JewelEvent.JewelEventRequestTypes.JewelMovedOffAccount, QuestEngine.QuestActivityMode.Ignore));
@@ -266,11 +277,18 @@ namespace DefiKindom_QuestRunner.Managers
                             //Since success we need to tell the system that this current wallet now holds the jewel
                             _currentWalletWithTheJewel = walletNextInQueue;
 
+                            //If Jewel is moving to a new account. Lets check for balance changes
+                            hasJewelCheck =
+                                await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
+                            if (hasJewelCheck > 0)
+                            {
+                                await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = hasJewelCheck, Holder = walletNextInQueue } });
+                            }
+
+
                             if (ValidateTime)
                                 await ValidationXJewel(_currentWalletWithTheJewel);
 
-                            //Mark Jewel Busy (this will swap to false once the instance is DONE with its process)
-                            _jewelIsBusy = true;
 
                             //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
                             await EventHub.PublishAsync(new JewelEvent(_currentWalletWithTheJewel, JewelEvent.JewelEventRequestTypes.JewelMovedToAccount, QuestEngine.QuestActivityMode.Ignore));

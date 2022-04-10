@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Threading;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
 using DefiKindom_QuestRunner.Managers.Engines;
@@ -22,54 +24,65 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
     {
         public async Task<DkHeroQuestStatus> GetHeroQuestStatus(Account account, int heroId)
         {
-            try
+            var timesCheckingForQuestStatus = 0;
+            var foundHeroQuestData = false;
+            var heroQuestStatus = new DkHeroQuestStatus();
+
+            //Since RPC is unreachable sometimes, loop till it populates the information!
+            //This is the MOST IMPORTANT method in the app !  WE 100% NEED the result!
+            while (!foundHeroQuestData)
             {
-                var heroQuestStatus = new DkHeroQuestStatus();
-
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("getHeroQuest");
-                var contractResult = await contractFunction.CallDecodingToDefaultAsync(heroId);
-
-                if (contractResult != null && contractResult.Count > 0)
+                try
                 {
+                    //If we've checked twice. Sleep for 2 seconds to prevent 
+                    //being blocked by the RPC for spamming
+                    if (timesCheckingForQuestStatus == 2)
+                    {
+                        Thread.Sleep(2000);
+                        timesCheckingForQuestStatus = 0;
+                    }
+
+                    var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
+
+                    //Lets run some routines to get info about each account
+                    var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
+                        Settings.Default.QuestContractAddress);
+                    var contractFunction = contract.GetFunction("getHeroQuest");
+                    var contractResult = await contractFunction.CallDecodingToDefaultAsync(heroId);
+
                     //TODO: In future we will support MULTIPLE Heroes farming etc. We will need to loop the array of results 
                     //here and update the object tier
                     var firstQuestResults = contractResult.FirstOrDefault();
-                    if (firstQuestResults != null)
-                    {
-                        var subItems = firstQuestResults.Result as List<ParameterOutput>;
+                    var subItems = firstQuestResults.Result as List<ParameterOutput>;
 
-                        heroQuestStatus.Id = subItems[0].ConvertToString();
-                        heroQuestStatus.ContractAddress = subItems[1].ConvertToString();
-                        heroQuestStatus.HeroesOnQuest = subItems[2].ConvertToIntList();
-                        heroQuestStatus.PlayerAddress = subItems[3].ConvertToString();
+                    heroQuestStatus.Id = subItems[0].ConvertToString();
+                    heroQuestStatus.ContractAddress = subItems[1].ConvertToString();
+                    heroQuestStatus.HeroesOnQuest = subItems[2].ConvertToIntList();
+                    heroQuestStatus.PlayerAddress = subItems[3].ConvertToString();
 
-                        if (subItems[4].ConvertToDateTime() != null)
-                            heroQuestStatus.QuestStartedAt = subItems[4].ConvertToDateTime()?.ToLocalTime();
+                    if (subItems[4].ConvertToDateTime() != null)
+                        heroQuestStatus.QuestStartedAt = subItems[4].ConvertToDateTime()?.ToLocalTime();
 
-                        heroQuestStatus.StartBlock = subItems[5].ConvertToInt();
+                    heroQuestStatus.StartBlock = subItems[5].ConvertToInt();
 
-                        if(subItems[6].ConvertToDateTime() != null)
-                            heroQuestStatus.QuestCompletesAt = subItems[6].ConvertToDateTime()?.ToLocalTime();
-                        
-                        
-                        heroQuestStatus.Attempts = subItems[7].ConvertToInt();
-                        heroQuestStatus.Status = subItems[8].ConvertToInt();
-                    }
+                    if (subItems[6].ConvertToDateTime() != null)
+                        heroQuestStatus.QuestCompletesAt = subItems[6].ConvertToDateTime()?.ToLocalTime();
 
-                    return heroQuestStatus;
+
+                    heroQuestStatus.Attempts = subItems[7].ConvertToInt();
+                    heroQuestStatus.Status = subItems[8].ConvertToInt();
+
+                    //Change to true to dump out of method
+                    foundHeroQuestData = true;
+                    timesCheckingForQuestStatus++;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
                 }
             }
-            catch (Exception ex)
-            {
 
-            }
-
-            return null;
+            return heroQuestStatus;
         }
 
         public async Task<int> GetHeroStamina(Account account, int heroId)
