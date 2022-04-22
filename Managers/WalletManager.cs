@@ -84,32 +84,7 @@ namespace DefiKindom_QuestRunner.Managers
 
         static void SubscribeToEvents()
         {
-            //NeedJewelEvent
-            eventHub.Subscribe<JewelEvent>(NeedJewelEventRaise);
             eventHub.Subscribe<WalletsOnQuestsMessageEvent>(UpdateWalletOnQuestEvent);
-        }
-
-        static void NeedJewelEventRaise(JewelEvent evt)
-        {
-            if (evt != null)
-            {
-                switch (evt.RequestType)
-                {
-                    case JewelEvent.JewelEventRequestTypes.JewelMovedToAccount:
-                        lock (Wallets)
-                        {
-                            var jewelHolder = Wallets.FirstOrDefault(x => x.JewelBalance > 0);
-
-                            foreach (var wallet in Wallets)
-                            {
-                                wallet.IsHoldingTheJewel = wallet.Address.Trim().ToUpper() ==
-                                                           evt.Wallet.Address.Trim().ToUpper();
-                                wallet.JewelBalance = jewelHolder?.JewelBalance ?? 0;
-                            }
-                        }
-                        break;
-                }
-            }
         }
 
         static async void UpdateWalletOnQuestEvent(WalletsOnQuestsMessageEvent msgEvent)
@@ -686,7 +661,7 @@ namespace DefiKindom_QuestRunner.Managers
                             await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 
                         //Wallet isnt questing. Is there enough stamina ?
-                        if (wallet.AssignedHeroStamina >= 15)
+                        if (wallet.AssignedHeroStamina > 15)
                         {
                             QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                                 QuestEngine.QuestActivityMode.WantsToQuest));
@@ -694,7 +669,7 @@ namespace DefiKindom_QuestRunner.Managers
                             await eventHub.PublishAsync(new MessageEvent
                             {
                                 Content =
-                                    $"[Wallet:{wallet.Name} = {wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
+                                    $"[Wallet:{wallet.Name} = {wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Has Stamina! Wants to Quest)"
                             });
                         }
                         else
@@ -705,7 +680,7 @@ namespace DefiKindom_QuestRunner.Managers
                             await eventHub.PublishAsync(new MessageEvent
                             {
                                 Content =
-                                    $"[Wallet:{wallet.Name} = {wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
+                                    $"[Wallet:{wallet.Name} = {wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Waiting On Stamina)"
                             });
                         }
                     }
@@ -715,9 +690,8 @@ namespace DefiKindom_QuestRunner.Managers
             //Update wallet data file
             SaveWallets();
 
-
-            //Tell Jewel Manager to start processing
-            JewelManager.StartEngine();
+            //Start Jewel Manager
+            JewelManager.Start();
 
             return instancesStarted;
         }

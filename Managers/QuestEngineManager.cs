@@ -78,7 +78,7 @@ namespace DefiKindom_QuestRunner.Managers
         public static QuestEngineItem GetQuestEngineInstance(string address, QuestEngine.QuestTypes type)
         {
             lock (QuestEnginesRunning)
-                return QuestEnginesRunning.FirstOrDefault(x => x.Engine.DfkWallet.Address.ToUpper() == address.ToUpper() && x.Engine.QuestType == type);
+                return QuestEnginesRunning.FirstOrDefault(x => x.Engine.DfkWallet.Address.Trim().ToUpper() == address.Trim().ToUpper() && x.Engine.QuestType == type);
         }
 
         public static void KillAllInstances()

@@ -962,10 +962,6 @@ namespace DefiKindom_QuestRunner
 
         private async void MnuGridActionSendJewelToOnClick(object sender, EventArgs e)
         {
-            if (RadMessageBox.Show(this, "Are you sure you want to send Jewel to this wallet?", "Send Jewel",
-                    MessageBoxButtons.YesNo) == DialogResult.No)
-                return;
-
             HandleGridContextMenuVisibility(false);
 
             var selRow = gridWallets.SelectedRows.FirstOrDefault();
@@ -981,18 +977,9 @@ namespace DefiKindom_QuestRunner
                         var sendJewelResponse =
                             new JewelContractHandler().SendJewelToAccount(jewelHolder.Holder, sendJewelTo);
 
-                        if (sendJewelResponse.Result)
-                        {
-                            ShowRadAlertMessageBox($"Jewel has been transferred to wallet: {sendJewelTo.Name}!",
-                                "Jewel Transferred!");
-                        }
-                        else
-                        {
-                            ShowRadAlertMessageBox(
-                                $"An error occurred trying to send the jewel to: {sendJewelTo.Name}!",
-                                "Jewel Transferred ERROR");
-                        }
-
+                        AddConsoleMessage(sendJewelResponse.Result
+                            ? $"Jewel has been transferred to wallet: {sendJewelTo.Name}!"
+                            : $"An error occurred trying to send the jewel to: {sendJewelTo.Name}!");
                     }
                 }
             }
@@ -1117,45 +1104,57 @@ namespace DefiKindom_QuestRunner
 
         void UpdateGridQuestStatusInfo(WalletQuestStatusEvent evt)
         {
-            if (InvokeRequired)
-                Invoke(new WalletQuestStatusEventDelegate(UpdateGridQuestStatusInfo), evt);
-            else
+            try
             {
-                var foundRow = false;
-                var currentRowCount = gridQuestInstances.RowCount + 1;
-
-                lock (_tableQuestInstances)
+                if (InvokeRequired)
+                    Invoke(new WalletQuestStatusEventDelegate(UpdateGridQuestStatusInfo), evt);
+                else
                 {
-                    for (var i = 0; i < _tableQuestInstances.Rows.Count; i++)
+                    var foundRow = false;
+                    var currentRowCount = gridQuestInstances.RowCount + 1;
+
+                    lock (_tableQuestInstances)
                     {
-                        if (_tableQuestInstances.Rows[i][2].ToString() != evt.WalletAddress) continue;
+                        for (var i = 0; i < _tableQuestInstances.Rows.Count; i++)
+                        {
+                            if (_tableQuestInstances.Rows[i][2].ToString() != evt.WalletAddress) continue;
 
-                        _tableQuestInstances.Rows[i][3] = evt.ReadableActivityMode;
-                        _tableQuestInstances.Rows[i][4] = evt.ContractAddress != "0x0000000000000000000000000000000000000000" ? evt.ContractAddress : "";
-                        _tableQuestInstances.Rows[i][5] = evt.HeroId;
-                        _tableQuestInstances.Rows[i][6] = evt.HeroStamina;
-                        _tableQuestInstances.Rows[i][7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
-                        _tableQuestInstances.Rows[i][8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
+                            _tableQuestInstances.Rows[i][3] = evt.ReadableActivityMode;
+                            _tableQuestInstances.Rows[i][4] =
+                                evt.ContractAddress != "0x0000000000000000000000000000000000000000"
+                                    ? evt.ContractAddress
+                                    : "";
+                            _tableQuestInstances.Rows[i][5] = evt.HeroId;
+                            _tableQuestInstances.Rows[i][6] = evt.HeroStamina;
+                            _tableQuestInstances.Rows[i][7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
+                            _tableQuestInstances.Rows[i][8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
 
-                        foundRow = true;
-                        break;
-                    }
+                            foundRow = true;
+                            break;
+                        }
 
-                    if (!foundRow)
-                    {
-                        var row = _tableQuestInstances.NewRow();
-                        row[0] = currentRowCount;
-                        row[1] = evt.Name;
-                        row[2] = evt.WalletAddress;
-                        row[3] = evt.ReadableActivityMode;
-                        row[4] = evt.ContractAddress != "0x0000000000000000000000000000000000000000" ? evt.ContractAddress : "";
-                        row[5] = evt.HeroId;
-                        row[6] = evt.HeroStamina;
-                        row[7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
-                        row[8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
-                        _tableQuestInstances.Rows.Add(row);
+                        if (!foundRow)
+                        {
+                            var row = _tableQuestInstances.NewRow();
+                            row[0] = currentRowCount;
+                            row[1] = evt.Name;
+                            row[2] = evt.WalletAddress;
+                            row[3] = evt.ReadableActivityMode;
+                            row[4] = evt.ContractAddress != "0x0000000000000000000000000000000000000000"
+                                ? evt.ContractAddress
+                                : "";
+                            row[5] = evt.HeroId;
+                            row[6] = evt.HeroStamina;
+                            row[7] = evt.StartedAt != null ? evt.StartedAt.ToString() : "";
+                            row[8] = evt.CompletesAt != null ? evt.CompletesAt.ToString() : "";
+                            _tableQuestInstances.Rows.Add(row);
+                        }
                     }
                 }
+            }
+            catch
+            {
+
             }
         }
 
@@ -1199,6 +1198,8 @@ namespace DefiKindom_QuestRunner
                 Invoke(new HandleJewelProfitUxUpdatesDelegate(HandleJewelProfitUxUpdates), jewelInfo);
             else
             {
+                Debug.WriteLine($"Jewel Balance: {jewelInfo.Balance}");
+
                 //Lets tally up old jewel amount to new (this only happens on startup)
                 if (_startingJewelAmount == 0)
                 {

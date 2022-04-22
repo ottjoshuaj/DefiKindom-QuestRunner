@@ -87,24 +87,32 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
         public async Task<int> GetHeroStamina(Account account, int heroId)
         {
-            try
+            var heroStaminaValue = 0;
+            var foundHeroStamina = false;
+
+            while (!foundHeroStamina)
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
+                try
+                {
+                    var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
 
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("getCurrentStamina");
-                var contractResult = await contractFunction.CallAsync<BigInteger>(heroId);
+                    //Lets run some routines to get info about each account
+                    var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
+                        Settings.Default.QuestContractAddress);
+                    var contractFunction = contract.GetFunction("getCurrentStamina");
+                    var contractResult = await contractFunction.CallAsync<BigInteger>(heroId);
 
-                return (int) contractResult;
+                    heroStaminaValue = (int)contractResult;
+                    foundHeroStamina = true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
             }
-            catch (Exception ex)
-            {
 
-            }
 
-            return -1;
+            return heroStaminaValue;
         }
 
 

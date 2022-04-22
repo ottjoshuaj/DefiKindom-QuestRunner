@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DefiKindom_QuestRunner.Managers.Contracts;
 using NBitcoin.Protocol;
 using Newtonsoft.Json;
 
@@ -55,6 +56,9 @@ namespace DefiKindom_QuestRunner.Objects
 
         [JsonProperty("jewelBalance")]
         public decimal JewelBalance { get; set; }
+
+        [JsonProperty("nftBalanceInfo")]
+        public NftBalanceInfo NftBalanceInfo { get; set; }
 
         [JsonProperty("dfkProfile")]
         public object DfkProfile { get; set; }

@@ -16,6 +16,13 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 {
     internal class ProfileContractHandler
     {
+        public enum NftTypes
+        {
+            YellowEgg,
+            ShvasRune,
+            Tears
+        }
+
         public async Task<bool> CreateProfile(DfkWallet wallet, string profileName)
         {
             try
@@ -92,6 +99,5 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
             return null;
         }
-
     }
 }
