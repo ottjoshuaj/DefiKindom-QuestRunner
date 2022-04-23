@@ -54,11 +54,11 @@ namespace DefiKindom_QuestRunner.Managers
                         }
                     };
 
-                    //Fire Thread
-                    newQuestEngineInstance.ExecutingThread.Start();
-
                     //Add to internal management list
                     QuestEnginesRunning.Add(newQuestEngineInstance);
+
+                    //Fire Thread
+                    newQuestEngineInstance.ExecutingThread.Start();
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace DefiKindom_QuestRunner.Managers
         public static QuestEngineItem GetQuestEngineInstance(string address, QuestEngine.QuestTypes type)
         {
             lock (QuestEnginesRunning)
-                return QuestEnginesRunning.FirstOrDefault(x => x.Engine.DfkWallet.Address.Trim().ToUpper() == address.Trim().ToUpper() && x.Engine.QuestType == type);
+                return QuestEnginesRunning.FirstOrDefault(x => x.Engine.DfkWallet.Address.Trim() == address.Trim());
         }
 
         public static void KillAllInstances()

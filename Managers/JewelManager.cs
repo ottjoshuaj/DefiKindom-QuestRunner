@@ -185,10 +185,12 @@ namespace DefiKindom_QuestRunner.Managers
                 lock (WalletsNeedingJewel)
                 {
                     //Is there ANY wallets in the queue atm?
+                    /*
                     var searchResults = WalletsNeedingJewel.OrderByDescending(x =>
                         x.QuestMode == QuestEngine.QuestActivityMode.WantsToCancelQuest ||
                         x.QuestMode == QuestEngine.QuestActivityMode.WantsToCompleteQuest);
-                    walletNextInQueue = searchResults.FirstOrDefault()?.Wallet;
+                    */
+                    walletNextInQueue = WalletsNeedingJewel.FirstOrDefault()?.Wallet;
                 }
 
                 if (walletNextInQueue == null)
@@ -235,8 +237,7 @@ namespace DefiKindom_QuestRunner.Managers
                     await EventHub.PublishAsync(new MessageEvent { Content = $"[Destination Wallet:${walletNextInQueue.Address}] => already has the jewel!" });
 
                     //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                    QuestEngineManager.GetQuestEngineInstance(walletNextInQueue.Address, QuestEngine.QuestTypes.Mining)
-                        .Engine.AddJewel();
+                    await QuestEngineManager.GetQuestEngineInstance(walletNextInQueue.Address, QuestEngine.QuestTypes.Mining).Engine.AddJewel();
                 }
                 else
                 {
@@ -259,8 +260,7 @@ namespace DefiKindom_QuestRunner.Managers
                         JewelIsBusy = true;
 
                         //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                        QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining)
-                            .Engine.AddJewel();
+                        await QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining).Engine.AddJewel();
 
                         var jewelHolder = await WalletManager.GetJewelHolder(walletNextInQueue.WalletAccount.Address);
                         if (jewelHolder != null)
@@ -299,9 +299,7 @@ namespace DefiKindom_QuestRunner.Managers
 
 
                             //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                            QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address,
-                                    QuestEngine.QuestTypes.Mining)
-                                .Engine.AddJewel();
+                            await QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining).Engine.AddJewel();
                         }
                         else
                         {
@@ -323,8 +321,7 @@ namespace DefiKindom_QuestRunner.Managers
                                 JewelIsBusy = true;
 
                                 //Successfully sent the jewel to the address. Lets raise the event so the instance knows!
-                                QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining)
-                                    .Engine.AddJewel();
+                                await QuestEngineManager.GetQuestEngineInstance(_currentWalletWithTheJewel.Address, QuestEngine.QuestTypes.Mining).Engine.AddJewel();
                             }
 
                             //We got a FAIL to send jewel to the account....not sure why though?  Transaction timeout ? Failure ?

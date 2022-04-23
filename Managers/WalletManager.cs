@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Nethereum.Signer;
@@ -594,9 +595,23 @@ namespace DefiKindom_QuestRunner.Managers
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
 
-                //Wallet is already questing 
-                if (wallet.IsQuesting)
+                var walletQuestStatus = new WalletQuestStatusEvent
                 {
+                    WalletAddress = wallet.Address,
+                    Name = wallet.Name,
+                    HeroId = wallet.AssignedHero,
+                    HeroStamina = wallet.AssignedHeroStamina,
+                    ContractAddress = wallet.AssignedHeroQuestStatus.ContractAddress
+                };
+
+
+                //Wallet is already questing 
+                if (wallet.AssignedHeroQuestStatus.IsQuesting)
+                {
+                    //Set start/complete times
+                    walletQuestStatus.StartedAt = wallet.AssignedHeroQuestStatus.QuestStartedAt;
+                    walletQuestStatus.CompletesAt = wallet.AssignedHeroQuestStatus.QuestCompletesAt;
+                    
                     //Make sure appropriate hero questing is set
                     //Push the hero on quest and make sure its FIRST in the list!
                     if (wallet.AvailableHeroes.All(x => x != wallet.AssignedHeroQuestStatus.HeroesOnQuest.First()))
@@ -611,8 +626,10 @@ namespace DefiKindom_QuestRunner.Managers
                         }
                     }
 
-                    if (wallet.QuestNeedsCompleted)
+                    if (wallet.AssignedHeroQuestStatus.WantsToComplete)
                     {
+                        walletQuestStatus.CurrentActivityMode = QuestEngine.QuestActivityMode.WantsToCompleteQuest;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCompleteQuest));
 
@@ -621,8 +638,10 @@ namespace DefiKindom_QuestRunner.Managers
                             Content =
                                 $"[Wallet:{wallet.Name} = {wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Completed)"
                         });
-                    } else if (wallet.QuestNeedsCanceled)
+                    } else if (wallet.AssignedHeroQuestStatus.WantsToCancel)
                     {
+                        walletQuestStatus.CurrentActivityMode = QuestEngine.QuestActivityMode.WantsToCancelQuest;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.WantsToCancelQuest));
 
@@ -634,6 +653,8 @@ namespace DefiKindom_QuestRunner.Managers
                     }
                     else
                     {
+                        walletQuestStatus.CurrentActivityMode = QuestEngine.QuestActivityMode.Questing;
+
                         QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                             QuestEngine.QuestActivityMode.Questing));
 
@@ -663,6 +684,8 @@ namespace DefiKindom_QuestRunner.Managers
                         //Wallet isnt questing. Is there enough stamina ?
                         if (wallet.AssignedHeroStamina > 15)
                         {
+                            walletQuestStatus.CurrentActivityMode = QuestEngine.QuestActivityMode.WantsToQuest;
+
                             QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                                 QuestEngine.QuestActivityMode.WantsToQuest));
 
@@ -674,6 +697,8 @@ namespace DefiKindom_QuestRunner.Managers
                         }
                         else
                         {
+                            walletQuestStatus.CurrentActivityMode = QuestEngine.QuestActivityMode.WaitingOnStamina;
+
                             QuestEngineManager.AddQuestEngine(new QuestEngine(wallet, QuestEngine.QuestTypes.Mining,
                                 QuestEngine.QuestActivityMode.WaitingOnStamina));
 
@@ -685,6 +710,9 @@ namespace DefiKindom_QuestRunner.Managers
                         }
                     }
                 }
+
+                //Publish event to update grid
+                await eventHub.PublishAsync(walletQuestStatus);
             }
 
             //Update wallet data file
