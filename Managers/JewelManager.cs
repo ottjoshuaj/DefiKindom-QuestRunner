@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -11,6 +12,7 @@ using DefiKindom_QuestRunner.Managers.Contracts;
 using DefiKindom_QuestRunner.Managers.Engines;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using Timer = System.Timers.Timer;
 
 namespace DefiKindom_QuestRunner.Managers
 {
@@ -241,7 +243,7 @@ namespace DefiKindom_QuestRunner.Managers
                 }
                 else
                 {
-                    decimal hasJewelCheck;
+                    decimal hasJewelCheck = 0;
 
                     //Do we have the damn jewel?  Sometimes we get stuck in this weird loop even though
                     //a COMPLETE has come back from the api.... This "EXTRA" check will see if the current wallet that wants the
@@ -285,14 +287,18 @@ namespace DefiKindom_QuestRunner.Managers
                             //Since success we need to tell the system that this current wallet now holds the jewel
                             _currentWalletWithTheJewel = walletNextInQueue;
 
-                            //If Jewel is moving to a new account. Lets check for balance changes
-                            hasJewelCheck =
-                                await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
-                            if (hasJewelCheck > 0)
+                            //If Jewel is moving to a new account. Lets check for balance changes. Since we must WAIT till its mined
+                            //and blockchain is updated. We must loop
+                            hasJewelCheck = 0;
+                            while (hasJewelCheck == 0)
                             {
-                                await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = hasJewelCheck, Holder = walletNextInQueue } });
+                                hasJewelCheck =
+                                    await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
+                                if (hasJewelCheck > 0) break;
+                                Thread.Sleep(2000);
                             }
 
+                            await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = hasJewelCheck, Holder = walletNextInQueue } });
 
                             if (ValidateTime)
                                 await ValidationXJewel(_currentWalletWithTheJewel);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -594,6 +595,8 @@ namespace DefiKindom_QuestRunner.Managers
                     await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
+
+                Debug.WriteLine($"Wallet: {wallet.Address} => Hero Count => {wallet.AvailableHeroes.Count}");
 
                 var walletQuestStatus = new WalletQuestStatusEvent
                 {

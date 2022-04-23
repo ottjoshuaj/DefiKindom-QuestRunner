@@ -267,59 +267,40 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                     break;
 
                 case QuestActivityMode.WantsToQuest:
-                    //Make sure they have enough stamina before attempting to quest!
-                    stamina = await
-                        new QuestContractHandler().GetHeroStamina(DfkWallet.WalletAccount, DfkWallet.AssignedHero);
-                    if (stamina < 15)
+                    //Start the quest
+                    var startQuestResponse = await
+                        new QuestContractHandler().StartQuesting(DfkWallet,
+                            DfkWallet.AssignedHero);
+                    if (startQuestResponse)
                     {
-                        QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
+                        QuestCurrentMode = QuestActivityMode.Questing;
 
                         //Tell system your questing
                         await _eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
-                            WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.WaitingOnStamina));
+                            WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
 
-                        //Lets tell jewel manager we're done (only if we successfully started quest contract)
+                        // Wait till blockchain catches up and starts the quest
+                        while (!DfkWallet.AssignedHeroQuestStatus.IsQuesting)
+                        {
+                            DfkWallet.AssignedHeroQuestStatus =
+                                await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
+                                    DfkWallet.AssignedHero);
+
+                            Thread.Sleep(2000);
+                        }
+
+                        //Lets tell jewel manager we're done (only if we succesfully started quest contract)
                         JewelManager.SetWalletNeedStatus(DfkWallet, QuestCurrentMode, false);
 
-                        await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Cant Start Quest (Canceling). (Stamina Too Low => {stamina})" });
+                        await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Quest Started..." });
+
+                        ReportWalletStatus();
                     }
                     else
                     {
-                        //Start the quest
-                        var startQuestResponse = await
-                            new QuestContractHandler().StartQuesting(DfkWallet,
-                                DfkWallet.AssignedHero);
-                        if (startQuestResponse)
-                        {
-                            QuestCurrentMode = QuestActivityMode.Questing;
-
-                            //Tell system your questing
-                            await _eventHub.PublishAsync(new WalletsOnQuestsMessageEvent(DfkWallet,
-                                WalletsOnQuestsMessageEvent.OnQuestMessageEventTypes.Questing));
-
-                            // Wait till blockchain catches up and starts the quest
-                            while (!DfkWallet.AssignedHeroQuestStatus.IsQuesting)
-                            {
-                                DfkWallet.AssignedHeroQuestStatus =
-                                    await new QuestContractHandler().GetHeroQuestStatus(DfkWallet.WalletAccount,
-                                        DfkWallet.AssignedHero);
-
-                                Thread.Sleep(2000);
-                            }
-
-                            //Lets tell jewel manager we're done (only if we succesfully started quest contract)
-                            JewelManager.SetWalletNeedStatus(DfkWallet, QuestCurrentMode, false);
-
-                            await _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => Quest Started..." });
-
-                            ReportWalletStatus();
-                        }
-                        else
-                        {
-                            //Failed to start. Re-try in 5 seconds
-                            Thread.Sleep(5000);
-                            await AddJewel(true);
-                        }
+                        //Failed to start. Re-try in 5 seconds
+                        Thread.Sleep(5000);
+                        await AddJewel(true);
                     }
                     break;
             }
@@ -337,8 +318,6 @@ namespace DefiKindom_QuestRunner.Managers.Engines
         public void RemoveJewel()
         {
             _eventHub.PublishAsync(new MessageEvent { Content = $@"[Wallet:{DfkWallet.Name} => {DfkWallet.Address}] => No longer has the JEWEL..." });
-
-            QuestCurrentMode = QuestActivityMode.WaitingOnStamina;
 
             if (timerCheckInstanceStatus != null)
                 timerCheckInstanceStatus.Enabled = true;

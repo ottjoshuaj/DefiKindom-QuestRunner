@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Threading;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
 using DefiKindom_QuestRunner.Objects;
@@ -19,25 +20,36 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
     {
         public async Task<List<int>> GetWalletHeroes(Account account)
         {
-            try
+            var heroList = new List<int>();
+
+            while (true)
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
+                try
+                {
+                    var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
 
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Hero),
-                    Settings.Default.HeroContractAddress);
-                var contractFunction = contract.GetFunction("getUserHeroes");
-                var contractResult =
-                    await contractFunction.CallDecodingToDefaultAsync(account.Address);
+                    var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Hero),
+                        Settings.Default.HeroContractAddress);
+                    var contractFunction = contract.GetFunction("getUserHeroes");
+                    var contractResult =
+                        await contractFunction.CallDecodingToDefaultAsync(account.Address);
 
-                if (contractResult != null && contractResult.Count > 0)
-                    return contractResult[0].ConvertToIntList();
+                    if (contractResult != null && contractResult.Count > 0)
+                    {
+                        heroList = contractResult[0].ConvertToIntList();
+
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    
+                }
+
+                Thread.Sleep(2000);
             }
-            catch (Exception ex)
-            {
 
-            }
-
-            return new List<int>();
+            return heroList;
         }
 
 

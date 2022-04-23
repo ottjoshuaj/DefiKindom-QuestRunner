@@ -38,7 +38,7 @@ namespace DefiKindom_QuestRunner.Dialogs
             cmbRPCSettings.Items.Add("https://s1.api.harmony.one");
             cmbRPCSettings.Items.Add("https://s2.api.harmony.one");
             cmbRPCSettings.Items.Add("https://s3.api.harmony.one");
-
+            cmbRPCSettings.Items.Add("https://rpc.hermesdefi.io");
 
             cmbRpcChain.Items.Add(new RadListDataItem("Shard 0", "1666600000"));
             cmbRpcChain.Items.Add(new RadListDataItem("Shard 1", "1666600001"));
