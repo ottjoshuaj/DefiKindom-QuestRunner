@@ -18,7 +18,7 @@ namespace DefiKindom_QuestRunner.ApiHandler
                 {
                     var request = new RestRequest(route, Method.Post)
                     {
-                        Timeout = 91200000,
+                        Timeout = 999999999,
                         RequestFormat = DataFormat.Json
                     };
                     request.AddHeader("Content-type", "application/json");

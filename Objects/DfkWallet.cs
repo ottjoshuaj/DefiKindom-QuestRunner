@@ -127,5 +127,8 @@ namespace DefiKindom_QuestRunner.Objects
 
         [JsonIgnore]
         public int TotalAccountHeroes => AvailableHeroes?.Count ?? 0;
+
+        [JsonProperty("nftBalanceInfo")]
+        public NftBalanceInfo NftBalanceInfo { get; set; }
     }
 }

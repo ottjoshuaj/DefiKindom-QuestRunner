@@ -440,7 +440,7 @@ namespace DefiKindom_QuestRunner
             //discordBot.SendMessage($"({instancesStarted}) Quest Instances initialized and started...");
 
             //Tell Jewel Timer to GO
-            _eventHub.PublishAsync(new QuestInstancesLoaded());
+            await _eventHub.PublishAsync(new QuestInstancesLoaded());
 
 
             mnuStopQuestEngine.Enabled = true;
@@ -969,13 +969,10 @@ namespace DefiKindom_QuestRunner
                 if (sendJewelTo != null)
                 {
                     //Find the jewel holder
-                    var jewelHolder = await WalletManager.GetJewelHolder();
+                    var jewelHolder = await WalletManager.GetJewelHolder(Settings.Default.LastKnownJewelHolder);
                     if (jewelHolder != null)
                     {
-                        var sendJewelResponse =
-                            new JewelContractHandler().SendJewelToAccount(jewelHolder.Holder, sendJewelTo);
-
-                        if (sendJewelResponse.Result)
+                        if (await new JewelContractHandler().SendJewelToAccount(jewelHolder.Holder, sendJewelTo))
                         {
                             ShowRadAlertMessageBox($"Jewel has been transferred to wallet: {sendJewelTo.Name}!",
                                 "Jewel Transferred!");
@@ -986,9 +983,7 @@ namespace DefiKindom_QuestRunner
                                 $"An error occurred trying to send the jewel to: {sendJewelTo.Name}!",
                                 "Jewel Transferred ERROR");
                         }
-
                     }
-
 
                     selRow.InvalidateRow();
                 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -11,6 +12,7 @@ using DefiKindom_QuestRunner.Managers.Contracts;
 using DefiKindom_QuestRunner.Managers.Engines;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
+using Timer = System.Timers.Timer;
 
 namespace DefiKindom_QuestRunner.Managers
 {
@@ -108,6 +110,8 @@ namespace DefiKindom_QuestRunner.Managers
 
         private static void InstanceJewelEvent(JewelEvent instance)
         {
+            var walletsNeedingJewel = 0;
+
             switch (instance.RequestType)
             {
                 case JewelEvent.JewelEventRequestTypes.NeedJewel:
@@ -118,6 +122,8 @@ namespace DefiKindom_QuestRunner.Managers
                         if (WalletsNeedingJewel.All(x =>
                                 x.Wallet.Address.Trim().ToUpper() != instance.Wallet.Address.Trim().ToUpper()))
                             WalletsNeedingJewel.Add(new WalletsThatNeedJewel(instance.Wallet, instance.QuestActivityMode));
+
+                        walletsNeedingJewel = WalletsNeedingJewel.Count;
                     }
                     break;
 
@@ -130,18 +136,19 @@ namespace DefiKindom_QuestRunner.Managers
                         var walletToRemove = WalletsNeedingJewel.FirstOrDefault(x => x.Wallet.Address.Trim().ToUpper() == instance.Wallet.Address.Trim().ToUpper());
                         if (walletToRemove != null)
                             WalletsNeedingJewel.Remove(walletToRemove);
+
+                        walletsNeedingJewel = WalletsNeedingJewel.Count;
                     }
 
                     _jewelIsBusy = false;
                     break;
             }
+
+            EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager [{walletsNeedingJewel}] Instances Need Jewel...." });
         }
 
         private static async void QuestInstancesLoaded(QuestInstancesLoaded evt)
         {
-            //_timerToCheckWhoNextGetsJewel.Enabled = true;
-            //_timerToCheckWhoNextGetsJewel.Start();
-
             await EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager (All Instances Loaded to Queue)...." });
         }
 
@@ -174,6 +181,8 @@ namespace DefiKindom_QuestRunner.Managers
                         x.QuestMode == QuestEngine.QuestActivityMode.WantsToCancelQuest ||
                         x.QuestMode == QuestEngine.QuestActivityMode.WantsToCompleteQuest);
                     walletNextInQueue = searchResults.FirstOrDefault()?.Wallet;
+
+                    //EventHub.PublishAsync(new MessageEvent { Content = $"Jewel Manager => {WalletsNeedingJewel.Count} Wallets wants Jewel..." });
                 }
 
                 if (walletNextInQueue == null)
@@ -252,6 +261,10 @@ namespace DefiKindom_QuestRunner.Managers
                             await new JewelContractHandler().SendJewelToAccount(_currentWalletWithTheJewel, walletNextInQueue);
                         if (result)
                         {
+                            //Lets wait till we get a confirmation that this wallet has the jewel
+                            hasJewelCheck =
+                                await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
+
                             //If Jewel is moving to a new account. Lets check for balance changes
                             var jewelHolder = await WalletManager.GetJewelHolder(walletNextInQueue.WalletAccount.Address);
                             if (jewelHolder != null)
@@ -278,8 +291,12 @@ namespace DefiKindom_QuestRunner.Managers
                         else
                         {
                             //Maybe it did xfer? Does the new Destination wallet have the jewel ?
+                            //Lets wait till we get a confirmation that this wallet has the jewel
                             hasJewelCheck =
                                 await new JewelContractHandler().CheckJewelBalance(walletNextInQueue.WalletAccount);
+
+                            Thread.Sleep(2000);
+
                             if (hasJewelCheck > 0)
                             {
                                 await EventHub.PublishAsync(new JewelInformationEvent { JewelInformation = new JewelInformation { Balance = hasJewelCheck, Holder = walletNextInQueue } });

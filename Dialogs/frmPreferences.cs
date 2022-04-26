@@ -34,6 +34,7 @@ namespace DefiKindom_QuestRunner.Dialogs
 
         private void frmPreferences_Load(object sender, EventArgs e)
         {
+            cmbRPCSettings.Items.Add("https://rpc.hermesdefi.io");
             cmbRPCSettings.Items.Add("https://api.harmony.one");
             cmbRPCSettings.Items.Add("https://s1.api.harmony.one");
             cmbRPCSettings.Items.Add("https://s2.api.harmony.one");

@@ -40,7 +40,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
             }
 
-            return -1;
+            return 0;
         }
 
         public async Task<bool> TransferLockeDJewel(Account source, Account destination)

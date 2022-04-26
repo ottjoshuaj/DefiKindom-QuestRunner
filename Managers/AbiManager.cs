@@ -13,7 +13,8 @@ namespace DefiKindom_QuestRunner.Managers
             Profile,
             Quest,
             Jewel,
-            Erc721
+            Erc721,
+            Erc20
         }
 
         public static string GetAbi(AbiTypes type)
@@ -30,6 +31,8 @@ namespace DefiKindom_QuestRunner.Managers
                     return GetResource("dfk-jewel.json");
                 case AbiTypes.Erc721:
                     return GetResource("ERC721.json");
+                case AbiTypes.Erc20:
+                    return GetResource("erc20-abi.json");
             }
 
             return null;

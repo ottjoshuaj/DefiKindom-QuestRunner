@@ -373,6 +373,7 @@
     <Compile Include="ApiHandler\Objects\FundWalletWithOneResponse.cs" />
     <Compile Include="ApiHandler\Objects\GeneralTransactionResponse.cs" />
     <Compile Include="ApiHandler\Objects\JewelTransferRequest.cs" />
+    <Compile Include="ApiHandler\Objects\NftTransferRequest.cs" />
     <Compile Include="ApiHandler\Objects\QuestCancelRequest.cs" />
     <Compile Include="ApiHandler\Objects\QuestStartRequest.cs" />
     <Compile Include="ApiHandler\Objects\SmallWalletItem.cs" />
@@ -380,6 +381,7 @@
     <Compile Include="ApiHandler\Objects\WalletCreateRequest.cs" />
     <Compile Include="ApiHandler\Objects\WalletCreateResponse.cs" />
     <Compile Include="ApiHandler\QuickRequest.cs" />
+    <Compile Include="ContractHandlers\NftContractHandler.cs" />
     <Compile Include="Dialogs\frmImportWalletDataFile.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -476,6 +478,7 @@
     <Compile Include="Objects\Events\WalletsOnQuestsMessageEvent.cs" />
     <Compile Include="Objects\HeroProfile.cs" />
     <Compile Include="Objects\JewelInformation.cs" />
+    <Compile Include="Objects\NftBalanceInfo.cs" />
     <Compile Include="Objects\OneFundRequestResponse.cs" />
     <Compile Include="Objects\QuestObjects.cs" />
     <Compile Include="Program.cs" />

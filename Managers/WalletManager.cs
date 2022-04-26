@@ -622,6 +622,7 @@ namespace DefiKindom_QuestRunner.Managers
                     await new QuestContractHandler().GetHeroQuestStatus(wallet.WalletAccount, wallet.AssignedHero);
                 wallet.AssignedHeroStamina =
                     await new QuestContractHandler().GetHeroStamina(wallet.WalletAccount, wallet.AssignedHero);
+                wallet.NftBalanceInfo = await new NftContractHandler().GetNftBalances(wallet);
 
                 //Wallet is already questing 
                 if (wallet.IsQuesting)
@@ -648,7 +649,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Completed)"
+                                $"[QuestInstance]:[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Completed)"
                         });
                     } else if (wallet.QuestNeedsCanceled)
                     {
@@ -658,7 +659,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Canceled)"
+                                $"[QuestInstance]:[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing/Needs Canceled)"
                         });
                     }
                     else
@@ -669,7 +670,7 @@ namespace DefiKindom_QuestRunner.Managers
                         await eventHub.PublishAsync(new MessageEvent
                         {
                             Content =
-                                $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing)"
+                                $"[QuestInstance]:[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Actively Questing)"
                         });
                     }
 
@@ -701,7 +702,7 @@ namespace DefiKindom_QuestRunner.Managers
                             await eventHub.PublishAsync(new MessageEvent
                             {
                                 Content =
-                                    $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Has Stamina! Wants to Quest)"
+                                    $"[QuestInstance]:[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Has Stamina! Wants to Quest)"
                             });
                         }
                         else
@@ -712,7 +713,7 @@ namespace DefiKindom_QuestRunner.Managers
                             await eventHub.PublishAsync(new MessageEvent
                             {
                                 Content =
-                                    $"[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => Quest Instance created! (Waiting On Stamina)"
+                                    $"[QuestInstance]:[Wallet:{wallet.Address}] => [Hero:{wallet.AssignedHero}] => (Waiting On Stamina)"
                             });
                         }
                     }
