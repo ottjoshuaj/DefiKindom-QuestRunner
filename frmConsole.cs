@@ -298,7 +298,7 @@ namespace DefiKindom_QuestRunner
 
             mnuRecallHerosToSourceWallet = new RadMenuItem();
             mnuRecallHerosToSourceWallet.Text = @"Recall Heroes To Source Wallet";
-            mnuRecallHerosToSourceWallet.Click += mnuSendHeroesToWallets_Click;
+            mnuRecallHerosToSourceWallet.Click += MnuRecallHerosToSourceOnClick;
 
             mnuGenerateNewWallets = new RadMenuItem();
             mnuGenerateNewWallets.Text = @"Generate New Wallets";
@@ -333,6 +333,48 @@ namespace DefiKindom_QuestRunner
 
 
             //            //ThemeResolutionService.ApplicationThemeName = Settings.Default.UXTheme;
+        }
+
+        private async void MnuRecallHerosToSourceOnClick(object sender, EventArgs e)
+        {
+            mnuMainMenu.Enabled = false;
+
+            var sourceWallet = WalletManager.GetWallets().FirstOrDefault(x => x.IsPrimarySourceWallet);
+            if (sourceWallet != null)
+            {
+                foreach (var wallet in WalletManager.GetWallets().Where(wallet => wallet != null).Where(wallet => wallet.AvailableHeroes.Count > 0))
+                {
+                    UpdateStatusLabelMessage("Moving Heroes Back To Source Wallet....");
+
+                    foreach (var heroId in wallet.AvailableHeroes)
+                    {
+                        var heroSentToWalletResult =
+                            await new HeroContractHandler().SendHeroToWallet(wallet, sourceWallet.WalletAccount,
+                                heroId);
+                        if (heroSentToWalletResult)
+                        {
+                            await _eventHub.PublishAsync(new MessageEvent()
+                            {
+                                Content =
+                                    $"[Wallet:{sourceWallet.Address}] => Received => [Hero:{heroId}] (Recalled Action)"
+                            });
+                        }
+                    }
+
+                    await WalletManager.ReloadWalletHeroData(sourceWallet.Address);
+                    await WalletManager.ReloadWalletHeroData(wallet.Address);
+
+                    //Force "wallet" we are cleaning up to have no assigned hero, no stam, and clear out available heroes
+                    WalletManager.GetWallet(wallet.Address).AssignedHeroStamina = 0;
+                    WalletManager.GetWallet(wallet.Address).AvailableHeroes?.Clear();
+                }
+            }
+
+            WalletManager.SaveWallets();
+
+            LoadDataToGrid();
+
+            mnuMainMenu.Enabled = true;
         }
 
         private void mnuSendOneAndOnboardToDfk_Click(object sender, EventArgs e)

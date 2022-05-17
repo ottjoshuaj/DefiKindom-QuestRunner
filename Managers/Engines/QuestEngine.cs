@@ -263,6 +263,7 @@ namespace DefiKindom_QuestRunner.Managers.Engines
                             {
                                 DfkWallet.AssignedHeroStamina = await
                                     new QuestContractHandler().GetHeroStamina(DfkWallet.WalletAccount, DfkWallet.AssignedHero);
+                                DfkWallet.NftBalanceInfo = await new NftContractHandler().GetNftBalances(DfkWallet);
 
                                 //Available stam > 15. Lets move to quest mode
                                 if (DfkWallet.AssignedHeroStamina >= 15)

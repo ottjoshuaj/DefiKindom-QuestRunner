@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
+
 using System.Threading.Tasks;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
-using DefiKindom_QuestRunner.Managers;
-using DefiKindom_QuestRunner.Managers.Contracts;
+using DefiKindom_QuestRunner.Managers.Contracts.Base;
 using DefiKindom_QuestRunner.Objects;
-using DefiKindom_QuestRunner.Properties;
-
-using Nethereum.Web3;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
-    internal class NftContractHandler
+    internal class NftContractHandler : BaseContract
     {
         public enum NftTypes
         {
@@ -40,13 +34,11 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
         {
             try
             {
-                var web3 = new Web3(wallet.WalletAccount, Settings.Default.CurrentRpcUrl);
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Erc20),
-                    GetNftContractAddress(nftType));
-                var contractFunction = contract.GetFunction("balanceOf");
+                var contractFunction = BuildContract(wallet.WalletAccount, AbiManager.AbiTypes.Erc20,
+                    GetNftContractAddress(nftType), "balanceOf");
                 var contractResult = await contractFunction.CallAsync<BigInteger>(wallet.Address);
 
-                return (int)contractResult;
+                return (int) contractResult;
             }
             catch
             {

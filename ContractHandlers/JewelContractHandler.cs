@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Numerics;
-using DefiKindom_QuestRunner.ApiHandler;
-using DefiKindom_QuestRunner.ApiHandler.Objects;
-using Nethereum.Hex.HexTypes;
+
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Managers.Contracts.Base;
 using DefiKindom_QuestRunner.Objects;
-using DefiKindom_QuestRunner.Properties;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
-    internal class JewelContractHandler
+    internal class JewelContractHandler : BaseContract
     {
         public async Task<decimal> CheckJewelBalance(Account account)
         {
@@ -24,12 +24,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                     return 0;
                 }
 
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Jewel),
-                    Settings.Default.JewelContractAddress);
-                var contractFunction = contract.GetFunction("balanceOf");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Jewel, "balanceOf");
                 var contractResult = await contractFunction.CallDecodingToDefaultAsync(account.Address);
                 var balance = Web3.Convert.FromWei(BigInteger.Parse(contractResult[0].ConvertToString()));
 

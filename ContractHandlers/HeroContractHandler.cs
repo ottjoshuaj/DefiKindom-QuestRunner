@@ -1,31 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Numerics;
+
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Managers.Contracts.Base;
 using DefiKindom_QuestRunner.Objects;
-using Nethereum.ABI.FunctionEncoding;
-using Nethereum.Hex.HexTypes;
-using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
 
-using DefiKindom_QuestRunner.Properties;
-using Nethereum.Signer;
+using Nethereum.ABI.FunctionEncoding;
+using Nethereum.Web3.Accounts;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
-    internal class HeroContractHandler
+    internal class HeroContractHandler : BaseContract
     {
         public async Task<List<int>> GetWalletHeroes(Account account)
         {
             try
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Hero),
-                    Settings.Default.HeroContractAddress);
-                var contractFunction = contract.GetFunction("getUserHeroes");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Hero, "getUserHeroes");
                 var contractResult =
                     await contractFunction.CallDecodingToDefaultAsync(account.Address);
 
@@ -40,16 +33,11 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             return new List<int>();
         }
 
-
         public async Task<HeroProfile> GetHeroDetails(Account account, int heroId)
         {
             try
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Hero),
-                    Settings.Default.HeroContractAddress);
-                var contractFunction = contract.GetFunction("getHero");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Hero, "getHero");
                 var contractResult = await contractFunction.CallDecodingToDefaultAsync(heroId);
 
                 if (contractResult != null && contractResult.Count > 0)
@@ -170,7 +158,6 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
             return null;
         }
-
 
         public async Task<bool> SendHeroToWallet(DfkWallet wallet, Account destination, int heroId)
         {

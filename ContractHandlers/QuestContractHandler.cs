@@ -3,22 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
-using DefiKindom_QuestRunner.ApiHandler;
-using DefiKindom_QuestRunner.ApiHandler.Objects;
-using DefiKindom_QuestRunner.Managers.Engines;
+
 using Nethereum.ABI.FunctionEncoding;
-using Nethereum.Hex.HexTypes;
-using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
+using DefiKindom_QuestRunner.ApiHandler;
+using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Managers.Contracts.Base;
+using DefiKindom_QuestRunner.Managers.Engines;
 using DefiKindom_QuestRunner.Objects;
 using DefiKindom_QuestRunner.Properties;
-using NBitcoin;
-using Nethereum.Contracts;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
-    internal class QuestContractHandler
+    internal class QuestContractHandler : BaseContract
     {
         public async Task<DkHeroQuestStatus> GetHeroQuestStatus(Account account, int heroId)
         {
@@ -26,12 +24,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
             {
                 var heroQuestStatus = new DkHeroQuestStatus();
 
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("getHeroQuest");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Quest, "getHeroQuest");
                 var contractResult = await contractFunction.CallDecodingToDefaultAsync(heroId);
 
                 if (contractResult != null && contractResult.Count > 0)
@@ -76,12 +69,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
         {
             try
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("getCurrentStamina");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Quest, "getCurrentStamina");
                 var contractResult = await contractFunction.CallAsync<BigInteger>(heroId);
 
                 return (int) contractResult;
@@ -93,7 +81,6 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
 
             return -1;
         }
-
 
         public async Task<bool> CancelQuesting(DfkWallet wallet, int heroId)
         {
@@ -274,12 +261,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
                         break;
                 }
 
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Quest),
-                    Settings.Default.QuestContractAddress);
-                var contractFunction = contract.GetFunction("questAddressToType");
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Quest, "questAddressToType");
                 var contractResult =
                     await contractFunction.CallDecodingToDefaultAsync(questAddress);
 

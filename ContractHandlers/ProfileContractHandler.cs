@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Numerics;
 
-using Nethereum.Hex.HexTypes;
-using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 using DefiKindom_QuestRunner.Abis.Objects;
 using DefiKindom_QuestRunner.ApiHandler;
 using DefiKindom_QuestRunner.ApiHandler.Objects;
+using DefiKindom_QuestRunner.Managers.Contracts.Base;
 using DefiKindom_QuestRunner.Objects;
-using DefiKindom_QuestRunner.Properties;
 
 namespace DefiKindom_QuestRunner.Managers.Contracts
 {
-    internal class ProfileContractHandler
+    internal class ProfileContractHandler : BaseContract
     {
         public async Task<bool> CreateProfile(DfkWallet wallet, string profileName)
         {
@@ -70,13 +67,7 @@ namespace DefiKindom_QuestRunner.Managers.Contracts
         {
             try
             {
-                var web3 = new Web3(account, Settings.Default.CurrentRpcUrl);
-
-                //Lets run some routines to get info about each account
-                var contract = web3.Eth.GetContract(AbiManager.GetAbi(AbiManager.AbiTypes.Profile),
-                    Settings.Default.ProfileContractAddress);
-                var contractFunction = contract.GetFunction("getProfileByAddress");
-
+                var contractFunction = BuildContract(account, AbiManager.AbiTypes.Profile, "getProfileByAddress");
                 var profile = await contractFunction.CallDecodingToDefaultAsync(account.Address);
                 if (profile != null)
                 {
